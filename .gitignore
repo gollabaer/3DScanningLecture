@@ -26,3 +26,8 @@
 *.exe
 *.out
 *.app
+
+Win32/
+3dscan/Debug
+3dscan/DebugGeneratedFiles
+
