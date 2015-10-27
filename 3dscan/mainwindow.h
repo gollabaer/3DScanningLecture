@@ -1,6 +1,9 @@
 
 #include <QtGui/QWindow>
 #include <QtGui/QOpenGLFunctions>
+#include <QtGui/QOpenGLShaderProgram>
+#include <QtGui/QMatrix4x4>
+#include <QMouseEvent>
 
 class QPainter;
 class QOpenGLContext;
@@ -13,12 +16,17 @@ public:
 	explicit OpenGLWindow(QWindow *parent = 0);
 	~OpenGLWindow();
 
-	virtual void render(QPainter *painter);
-	virtual void render();
+	void render(QPainter *painter);
+	void render();
 
-	virtual void initialize();
+	void initialize();
 
 	void setAnimating(bool animating);
+
+	GLfloat * vertices;
+	uint count;
+	QMatrix4x4 model, view, projection;
+	QVector3D center;
 
 	public slots:
 	void renderLater();
@@ -33,6 +41,18 @@ private:
 	bool m_update_pending;
 	bool m_animating;
 
+	GLuint m_posAttr;
+	GLuint m_colAttr;
+	GLuint m_matrixUniform;
+	QPointF oldMousePosition = QPointF(-1,-1);
+
+	QOpenGLShaderProgram *m_program;
+	int m_frame;
+
 	QOpenGLContext *m_context;
 	QOpenGLPaintDevice *m_device;
+
+	GLuint loadShader(GLenum type, const char *source);
+	void  OpenGLWindow::mouseMoveEvent(QMouseEvent* event);
+	void  OpenGLWindow::mouseReleaseEvent(QMouseEvent* event);
 };
