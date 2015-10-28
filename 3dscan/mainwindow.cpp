@@ -10,6 +10,9 @@
 #include <qopenglpaintdevice.h>
 #include <qpainter.h>
 
+/*The vertex and fragment shaders are relatively simple,
+doing vertex transformation and interpolated vertex coloring.*/
+
 static const char *vertexShaderSource =
 "attribute highp vec4 posAttr;\n"
 "attribute lowp vec4 colAttr;\n"
@@ -40,6 +43,7 @@ OpenGLWindow::OpenGLWindow(QWindow *parent)
 	, m_frame(0)
 	, oldMousePosition(-1, -1)
 {
+	// the window is to be used for OpenGL rendering
 	setSurfaceType(QWindow::OpenGLSurface);
 }
 
@@ -52,6 +56,8 @@ OpenGLWindow::~OpenGLWindow()
 
 void OpenGLWindow::renderLater()
 {
+	/*The renderLater() function simply puts an update request event on the event loop,
+	which leads to renderNow() being called once the event gets processed.*/
 	if (!m_update_pending) {
 		m_update_pending = true;
 		QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
@@ -72,6 +78,8 @@ bool OpenGLWindow::event(QEvent *event)
 
 void OpenGLWindow::exposeEvent(QExposeEvent *event)
 {
+	/*The exposeEvent() is the notification to the window that its exposure,
+	meaning visibility, on the screen has changed.*/
 	Q_UNUSED(event);
 
 	if (isExposed())
@@ -80,22 +88,28 @@ void OpenGLWindow::exposeEvent(QExposeEvent *event)
 
 void OpenGLWindow::renderNow()
 {
+	// end function if window is not visible
 	if (!isExposed())
 		return;
 
 	bool needsInitialize = false;
 
+	/*QOpenGLContext represents the OpenGL state of an underlying OpenGL context.
+	To set up a context, set its screen and format such that they match those of the surface
+	or surfaces with which the context is meant to be used.*/
 	if (!m_context) {
 		m_context = new QOpenGLContext(this);
 		m_context->setFormat(requestedFormat());
 		m_context->create();
 
+		//???
 		needsInitialize = true;
 	}
 
 	m_context->makeCurrent(this);
 
 	if (needsInitialize) {
+		// intern OpenGL function
 		initializeOpenGLFunctions();
 		initialize();
 	}
@@ -110,6 +124,7 @@ void OpenGLWindow::renderNow()
 
 void OpenGLWindow::setAnimating(bool animating)
 {
+	/*render() is called at the vertical refresh rate*/
 	m_animating = animating;
 
 	if (animating)
@@ -127,6 +142,7 @@ GLuint OpenGLWindow::loadShader(GLenum type, const char *source)
 void OpenGLWindow::initialize()
 {
 	m_program = new QOpenGLShaderProgram(this);
+	// see declaration of sources on top
 	m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
 	m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
 	m_program->link();
@@ -140,8 +156,10 @@ void OpenGLWindow::initialize()
 void OpenGLWindow::render()
 {
 	const qreal retinaScale = devicePixelRatio();
+	// set up viewport
 	glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
+	// clear background
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	m_program->bind();
@@ -172,27 +190,34 @@ void OpenGLWindow::render()
 }
 
 void  OpenGLWindow::mouseMoveEvent(QMouseEvent* event){
+	/*Change Model matrix according to mouse movement when left mouse button is pressed*/
 	if(event->buttons() & Qt::LeftButton){
+		// check if position values are valid
 		if (oldMousePosition.x() != -1 && oldMousePosition.y() != -1){
 
+			//difference of new and old mouse position
 			float xDiff = oldMousePosition.x() - event->x();
 			float yDiff = oldMousePosition.x() - event->y();
 
+			// translate to center for rotation
 			model.translate(center);
+			//
 			model.rotate(2, -xDiff, 0, -yDiff);
+			//move back to former position
 			model.translate(-center);
 
 
 		}
 		else{
 			oldMousePosition.setX(event->x());
-			oldMousePosition.setY( event->y());
+			oldMousePosition.setY(event->y());
 		}
 	}
 }
 
 
 void  OpenGLWindow::mouseReleaseEvent(QMouseEvent* event){
+	/*clear mouse position*/
 	oldMousePosition.setX(-1);
 	oldMousePosition.setY(-1);
 }
