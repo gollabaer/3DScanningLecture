@@ -28,6 +28,7 @@
 *.app
 
 Win32/
+3dscan/Release
 3dscan/Debug
 3dscan/DebugGeneratedFiles
 
