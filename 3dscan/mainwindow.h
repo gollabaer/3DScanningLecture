@@ -44,7 +44,7 @@ private:
 	GLuint m_posAttr;
 	GLuint m_colAttr;
 	GLuint m_matrixUniform;
-	QPointF oldMousePosition = QPointF(-1,-1);
+	QPointF oldMousePosition;
 
 	QOpenGLShaderProgram *m_program;
 	int m_frame;

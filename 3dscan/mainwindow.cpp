@@ -38,6 +38,7 @@ OpenGLWindow::OpenGLWindow(QWindow *parent)
 	, m_device(0)
 	, m_program(0)
 	, m_frame(0)
+	, oldMousePosition(-1, -1)
 {
 	setSurfaceType(QWindow::OpenGLSurface);
 }
