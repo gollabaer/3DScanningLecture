@@ -27,6 +27,14 @@
 *.out
 *.app
 
+# VS user files
+*.user
+*.sdf
+*.suo
+
+# QT generated
+3dscan/GeneratedFiles/*
+
 Win32/
 3dscan/Release
 3dscan/Debug
