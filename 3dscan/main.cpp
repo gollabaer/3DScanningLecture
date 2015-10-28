@@ -56,28 +56,46 @@ uint count;
 
 int main(int argc, char **argv)
 {
-
+	// load file
 	std::vector<float> verticesLoaded = xyzFileToVec("C:/all.xyz");
-	count = verticesLoaded.size();
+	// number of vertices*3
+	count = verticesLoaded.size(); 
+	// number of vertices
 	vertices = verticesLoaded.data();
 
+	//start QT GUI
 	QGuiApplication app(argc, argv);
 
+	/*The format includes the size of the color buffers, red, green, and blue; 
+	the size of the alpha buffer; the size of the depth and stencil buffers;
+	and number of samples per pixel for multisampling.
+	In addition, the format contains surface configuration parameters such as OpenGL profile
+	and version for rendering, whether or not to enable stereo buffers, and swap behaviour.*/
 	QSurfaceFormat format;
+	// Set the preferred number of samples per pixel when multisampling is enabled.
 	format.setSamples(16);
 
 	OpenGLWindow window;
+	// pass vertices to QT
 	window.vertices = vertices;
+	// pass size of vertice vector to QT
 	window.count = count;
+	// set Modelmatrix to Identity 
 	window.model.setToIdentity();
+	// ...
 	window.projection.perspective(60.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
+	// QVector3D(-100, 20, 0) Abstand von Zentrum
 	window.view.lookAt(QVector3D(xsum, ysum, zsum) + QVector3D(-100, 20, 0), QVector3D(xsum, ysum, zsum), QVector3D(0, 1, 0));
+	// sums = mean values of all vertices
 	window.center = QVector3D(xsum, ysum, zsum);
-
+	// pass format to QT
 	window.setFormat(format);
+	// change window size
 	window.resize(640, 480);
+	// show window
 	window.show();
 
+	// render() is called at the vertical refresh rate
 	window.setAnimating(true);
 
 	return app.exec();
