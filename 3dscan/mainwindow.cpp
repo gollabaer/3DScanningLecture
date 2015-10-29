@@ -149,6 +149,7 @@ void OpenGLWindow::initialize()
 	m_posAttr = m_program->attributeLocation("posAttr");
 	m_colAttr = m_program->attributeLocation("colAttr");
 	m_matrixUniform = m_program->uniformLocation("matrix");
+	qrotation = QQuaternion(1, 0, 0, 0);
 
 }
 
@@ -184,6 +185,7 @@ void OpenGLWindow::render()
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
 
+
 	m_program->release();
 
 	++m_frame;
@@ -197,21 +199,28 @@ void  OpenGLWindow::mouseMoveEvent(QMouseEvent* event){
 
 			//difference of new and old mouse position
 			float xDiff = oldMousePosition.x() - event->x();
-			float yDiff = oldMousePosition.x() - event->y();
+			float yDiff = oldMousePosition.y() - event->y();
 
+
+			QQuaternion q1, q2;
+			q1 = q1.fromEulerAngles(QVector3D(0, -xDiff, -yDiff));
+			//q2 = q2.fromEulerAngles(QVector3D(0, 0, -yDiff));
+			qrotation = q1  * qrotation;
+			QMatrix4x4 m;
+			m.rotate(qrotation);
 			// translate to center for rotation
+			model.setToIdentity();
 			model.translate(center);
 			//
-			model.rotate(2, -xDiff, 0, -yDiff);
+			model =model * m ;
+			//model.rotate(2, -xDiff, 0, -yDiff);
 			//move back to former position
 			model.translate(-center);
-
-
+			
 		}
-		else{
 			oldMousePosition.setX(event->x());
 			oldMousePosition.setY(event->y());
-		}
+		
 	}
 }
 

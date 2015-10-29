@@ -26,6 +26,7 @@ public:
 	GLfloat * vertices;
 	uint count;
 	QMatrix4x4 model, view, projection;
+	QQuaternion qrotation;
 	QVector3D center;
 
 	public slots:
