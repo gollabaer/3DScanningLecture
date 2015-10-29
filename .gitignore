@@ -31,6 +31,7 @@
 *.user
 *.sdf
 *.suo
+*.opensdf
 
 # QT generated
 3dscan/GeneratedFiles/*
