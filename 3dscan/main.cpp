@@ -11,17 +11,28 @@
 #include <QtGui/QScreen>
 #include <QtCore/qmath.h>
 
-double xsum = 0, ysum = 0, zsum = 0;
+double xsum , ysum, zsum ;
 
 struct doublepair{
 	public:
 		double x, y;
 };
 
-doublepair xminmax, yminmax, zmnmax;
+doublepair xminmax, yminmax, zminmax;
 
 std::vector<float> xyzFileToVec(std::string source){
 	
+	xminmax.x = 0;
+	xminmax.y = 0;
+	yminmax.x = 0;
+	yminmax.y = 0;
+	zminmax.x = 0;
+	zminmax.y = 0;
+
+	xsum = 0;
+	ysum = 0;
+	zsum = 0;
+
 	std::vector<float> vec; 
 	std::fstream fs;
 	fs.open(source.c_str(), std::ios::in);
