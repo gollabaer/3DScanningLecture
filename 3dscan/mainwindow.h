@@ -4,6 +4,9 @@
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QMatrix4x4>
 #include <QMouseEvent>
+extern "C" {
+#include "trackball.h"
+}
 
 class QPainter;
 class QOpenGLContext;
@@ -28,6 +31,9 @@ public:
 	QMatrix4x4 model, view, projection;
 	QQuaternion qrotation;
 	QVector3D center;
+
+	int rotationMode;
+
 
 	public slots:
 	void renderLater();
@@ -56,4 +62,5 @@ private:
 	GLuint loadShader(GLenum type, const char *source);
 	void  OpenGLWindow::mouseMoveEvent(QMouseEvent* event);
 	void  OpenGLWindow::mouseReleaseEvent(QMouseEvent* event);
+	void OpenGLWindow::keyPressEvent(QKeyEvent* event);
 };

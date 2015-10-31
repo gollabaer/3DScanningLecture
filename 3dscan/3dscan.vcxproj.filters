@@ -59,6 +59,12 @@
     <ClCompile Include="GeneratedFiles\Release\moc_mainglwidget.cpp">
       <Filter>Generierte Dateien\Release</Filter>
     </ClCompile>
+    <ClCompile Include="kdTree.cpp">
+      <Filter>Source Dateien</Filter>
+    </ClCompile>
+    <ClCompile Include="trackball.c">
+      <Filter>Source Dateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mainwindow.h">
@@ -77,6 +83,12 @@
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h">
       <Filter>Generierte Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="kdTree.h">
+      <Filter>Header Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="trackball.h">
+      <Filter>Header Dateien</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
