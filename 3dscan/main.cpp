@@ -4,6 +4,8 @@
 #include <string>
 #include <fstream>
 
+#include <kdTree.h>
+
 #include <QtWidgets/QApplication>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QMatrix4x4>
@@ -76,6 +78,8 @@ int main(int argc, char **argv)
 	count = verticesLoaded.size(); 
 	// number of vertices
 	vertices = verticesLoaded.data();
+
+	kdTree KD = kdTree(verticesLoaded, 8, 3);
 
 	//start QT GUI
 	QApplication app(argc, argv);
