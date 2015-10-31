@@ -246,7 +246,7 @@ void  OpenGLWindow::mouseMoveEvent(QMouseEvent* event){
 		}
 		// set current mouse position as old
 		oldMousePosition.setX(event->x());
-		oldMousePosition.setY(event->y());		
+		oldMousePosition.setY(event->y());
 	}
 }
 

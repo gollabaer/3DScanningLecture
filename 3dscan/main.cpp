@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 	// ...
 	window.projection.perspective(60.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
 	// QVector3D(-100, 20, 0) Abstand von Zentrum
-	window.view.lookAt(QVector3D(xsum, ysum, zsum) + QVector3D(-100, 0, 0), QVector3D(xsum, ysum, zsum), QVector3D(0, 1, 0));
+	window.view.lookAt(QVector3D(xsum, ysum, zsum) + QVector3D(0, 0, -100), QVector3D(xsum, ysum, zsum), QVector3D(0, 1, 0));
 	// sums = mean values of all vertices
 	window.center = QVector3D(xsum, ysum, zsum);
 	// pass format to QT

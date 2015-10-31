@@ -6,6 +6,9 @@
 #include <QMatrix4x4>
 #include <qopenglshaderprogram.h>
 #include <qmath.h>
+extern "C" {
+#include "trackball.h"
+}
 
 class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -19,6 +22,7 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		QMatrix4x4 model, view, projection;
 		GLfloat * vertices;
 		QVector3D center;
+		int rotationMode;
 
 	protected:
 		void initializeGL() Q_DECL_OVERRIDE;
@@ -26,6 +30,7 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		void resizeGL(int width, int height) Q_DECL_OVERRIDE;
 		void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 		void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+		void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
 
 	private:
 		QOpenGLVertexArrayObject m_vao;
