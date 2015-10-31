@@ -11,6 +11,8 @@
 #include <QtGui/QScreen>
 #include <QtCore/qmath.h>
 
+#include "mainglwidget.h"
+
 double xsum , ysum, zsum ;
 
 struct doublepair{
@@ -34,6 +36,7 @@ std::vector<float> xyzFileToVec(std::string source){
 	zsum = 0;
 
 	std::vector<float> vec; 
+	vec.reserve(9000000);
 	std::fstream fs;
 	fs.open(source.c_str(), std::ios::in);
 	ulong c = 0;
@@ -75,18 +78,18 @@ int main(int argc, char **argv)
 	vertices = verticesLoaded.data();
 
 	//start QT GUI
-	QGuiApplication app(argc, argv);
+	QApplication app(argc, argv);
 
 	/*The format includes the size of the color buffers, red, green, and blue; 
 	the size of the alpha buffer; the size of the depth and stencil buffers;
 	and number of samples per pixel for multisampling.
 	In addition, the format contains surface configuration parameters such as OpenGL profile
 	and version for rendering, whether or not to enable stereo buffers, and swap behaviour.*/
-	QSurfaceFormat format;
+	//QSurfaceFormat format;
 	// Set the preferred number of samples per pixel when multisampling is enabled.
-	format.setSamples(16);
+	//format.setSamples(16);
 
-	OpenGLWindow window;
+	MainGLWidget window;
 	// pass vertices to QT
 	window.vertices = vertices;
 	// pass size of vertice vector to QT
@@ -100,14 +103,13 @@ int main(int argc, char **argv)
 	// sums = mean values of all vertices
 	window.center = QVector3D(xsum, ysum, zsum);
 	// pass format to QT
-	window.setFormat(format);
+	//window.setFormat(format);
 	// change window size
 	window.resize(640, 480);
 	// show window
 	window.show();
 
-	// render() is called at the vertical refresh rate
-	window.setAnimating(true);
+
 
 	return app.exec();
 }

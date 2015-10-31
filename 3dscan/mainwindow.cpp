@@ -102,7 +102,6 @@ void OpenGLWindow::renderNow()
 		m_context->setFormat(requestedFormat());
 		m_context->create();
 
-		//???
 		needsInitialize = true;
 	}
 
@@ -156,9 +155,8 @@ void OpenGLWindow::initialize()
 
 void OpenGLWindow::render()
 {
-	const qreal retinaScale = devicePixelRatio();
 	// set up viewport
-	glViewport(0, 0, width() * retinaScale, height() * retinaScale);
+	glViewport(0, 0, width() , height());
 
 	// clear background
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -202,18 +200,17 @@ void  OpenGLWindow::mouseMoveEvent(QMouseEvent* event){
 			float yDiff = oldMousePosition.y() - event->y();
 
 
-			QQuaternion q1, q2;
+			QQuaternion q1;
 			q1 = q1.fromEulerAngles(QVector3D(0, -xDiff, -yDiff));
-			//q2 = q2.fromEulerAngles(QVector3D(0, 0, -yDiff));
 			qrotation = q1  * qrotation;
 			QMatrix4x4 m;
 			m.rotate(qrotation);
-			// translate to center for rotation
+			// set  back model
 			model.setToIdentity();
+			// translate to center for rotation
 			model.translate(center);
-			//
+			// rotation
 			model =model * m ;
-			//model.rotate(2, -xDiff, 0, -yDiff);
 			//move back to former position
 			model.translate(-center);
 			
