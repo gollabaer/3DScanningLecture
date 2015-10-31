@@ -34,31 +34,23 @@ kdTree::Node::Node()
 kdTree::Node::Node(std::vector<int> indices, std::vector<float> &points, int depth, int dim, Node* parent)
 {
 	int axis = depth % dim;
-	m_Parent = parent;
-	// get axis values
-	std::vector<float> axisPoints;
-	for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
-	{
-		axisPoints.push_back(points[*it+axis]);
-	}
-	//for (std::vector<float>::const_iterator i = axisPoints.begin(); i != axisPoints.end(); ++i)	 qDebug() << *i << ' ';
-	//for (std::vector<int>::const_iterator i = indices.begin(); i != indices.end(); ++i)	 qDebug() << *i << ' ';
-	
-	// sort by axis
-	std::sort(begin(indices), end(indices), [&](size_t a, size_t b) { return axisPoints[a] < axisPoints[b]; });
+	m_Parent = parent;	
 
-	//for (std::vector<int>::const_iterator i = indices.begin(); i != indices.end(); ++i)	 qDebug() << *i << ' ';
+	// sort by axis
+	std::sort(begin(indices), end(indices), [&](size_t a, size_t b) { return points[a+axis] < points[b+axis]; });
 
 	// choose median
-	int medianIndex = indices[indices.size() / 2];
-	m_Median = axisPoints[medianIndex];
+	m_Median = points[indices[indices.size() / 2]-1];
 
 	// split indices
 	std::vector<int> indicesLeft, indicesRight;
-	for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
+	indicesLeft.clear();
+	indicesRight.clear();
+
+	for (int iter = 0; iter < indices.size(); iter++)
 	{
-		if (*it < m_Median)	indicesLeft.push_back(*it);
-		else indicesRight.push_back(*it);
+		if (iter <= indices.size() / 2-1)	indicesLeft.push_back(indices[iter]);
+		else indicesRight.push_back(indices[iter]);
 	}
 	// construct left and right child
 	if(depth > 1)
