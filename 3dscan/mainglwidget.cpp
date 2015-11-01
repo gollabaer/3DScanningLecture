@@ -7,7 +7,7 @@ static const char *vertexShaderSource =
 "varying lowp vec4 col;\n"
 "uniform highp mat4 matrix;\n"
 "void main() {\n"
-"   col = vec4(1.0,1.0,1.0,1.0);\n"
+"   col = colAttr;\n"
 "   gl_Position = matrix * posAttr;\n"
 "}\n";
 
@@ -58,12 +58,8 @@ void MainGLWidget::paintGL() {
 	m_program->setUniformValue(m_matrixUniform, matrix);
 
 
-	GLfloat colors[] = {
-		1.0f, 0.0f, 0.0f
-	};
-
 	glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, vertices);
-	glVertexAttribPointer(m_colAttr, 1, GL_FLOAT, GL_FALSE, 0, colors);
+	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);

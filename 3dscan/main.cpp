@@ -78,8 +78,21 @@ int main(int argc, char **argv)
 	count = verticesLoaded.size(); 
 	// number of vertices
 	vertices = verticesLoaded.data();
+	GLfloat *colors = new GLfloat[count];
+	for (int i = 0; i < count; ++i)
+		colors[i] = 1.;
+
 
 	kdTree KD = kdTree(verticesLoaded, 8, 3);
+	QVector3D p1 = QVector3D(-10.0, 5, -7);
+	QVector3D p2 = QVector3D(8, -3, 9);
+	std::vector<int> query = KD.rangeQuery(p1, p2);
+
+	for (std::vector<int>::iterator it = query.begin(); it != query.end(); ++it)
+	{
+		colors[*it * 3] = 0.4;
+	}
+
 
 	//start QT GUI
 	QApplication app(argc, argv);
@@ -106,6 +119,8 @@ int main(int argc, char **argv)
 	window.view.lookAt(QVector3D(xsum, ysum, zsum) + QVector3D(0, 0, -100), QVector3D(xsum, ysum, zsum), QVector3D(0, 1, 0));
 	// sums = mean values of all vertices
 	window.center = QVector3D(xsum, ysum, zsum);
+
+	window.colors = colors;
 	// pass format to QT
 	//window.setFormat(format);
 	// change window size

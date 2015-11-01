@@ -23,6 +23,7 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		GLfloat * vertices;
 		QVector3D center;
 		int rotationMode;
+		GLfloat * colors;
 
 	protected:
 		void initializeGL() Q_DECL_OVERRIDE;
