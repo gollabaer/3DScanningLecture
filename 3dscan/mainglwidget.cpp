@@ -38,8 +38,6 @@ void MainGLWidget::initializeGL(){
 	m_posAttr = m_program->attributeLocation("posAttr");
 	m_colAttr = m_program->attributeLocation("colAttr");
 	m_matrixUniform = m_program->uniformLocation("matrix");
-	qrotation = QQuaternion(1, 0, 0, 0);
-	rotationMode = 0; // 0 = simple rotation, 1 = trackball
 
 }
 
@@ -53,7 +51,7 @@ void MainGLWidget::paintGL() {
 
 	m_program->bind();
 
-	QMatrix4x4 matrix = projection * view * model;
+	QMatrix4x4 matrix = cam.getCombinedMatrix();
 
 	m_program->setUniformValue(m_matrixUniform, matrix);
 
@@ -74,8 +72,7 @@ void MainGLWidget::paintGL() {
 
 }
 void MainGLWidget::resizeGL(int width, int height) {
-	projection.setToIdentity();
-	projection.perspective(60.0f, float(width) / float(height), 0.1f, 1000.0f);
+	cam.resize(width, height);
 }
 
 void MainGLWidget::mouseReleaseEvent(QMouseEvent *event){	
@@ -89,8 +86,7 @@ void MainGLWidget::keyPressEvent(QKeyEvent* event)
 	/* Change rotation method if key r is pressed*/
 	if (event->key() == Qt::Key_R)
 	{
-		if (rotationMode > 0) rotationMode = 0;
-		else rotationMode = 1;
+
 	}
 }
 
@@ -100,44 +96,7 @@ void MainGLWidget::mouseMoveEvent(QMouseEvent *event) {
 		// check if position values are valid
 		if (oldMousePosition.x() != -1 && oldMousePosition.y() != -1){
 			// quaterion q is used to store additional rotation
-			QQuaternion q;
-			if (rotationMode == 0) // simple rotation
-			{
-				//difference of new and old mouse position
-				float xDiff = oldMousePosition.x() - event->x();
-				float yDiff = oldMousePosition.y() - event->y();
-
-				q = q.fromEulerAngles(QVector3D(yDiff, -xDiff, 0));
-				//q2 = q2.fromEulerAngles(QVector3D(0, 0, -yDiff));
-			}
-			else if (rotationMode == 1) //trackball
-			{
-				// define center of window
-				float centerX = float(this->width() / 2);
-				float centerY = float(this->height() / 2);
-
-				//difference of new and old mouse position
-				float oldX = (oldMousePosition.x() - centerX) / centerX;
-				float oldY = (oldMousePosition.y() - centerY) / centerY;
-				float newX = (event->x() - centerX) / centerX;
-				float newY = (event->y() - centerY) / centerY;
-
-				//model.rotate(2, -xDiff, 0, -yDiff);
-				float rotation[4];
-				// get rotation as quaterion from trackball function
-				gfs_gl_trackball(rotation, newX, newY, oldX, oldY);
-				q = QQuaternion(QVector4D(rotation[0], rotation[1], rotation[2], rotation[3]));
-			}
-			// combine new rotation and current rotation
-			qrotation = q  * qrotation;
-			QMatrix4x4 m;
-			m.rotate(qrotation);
-			model.setToIdentity();
-			// translate to center for rotation
-			model.translate(center);
-			model = model * m;
-			//move back to former position
-			model.translate(-center);
+			cam.rotate(event->x(), event->y(), oldMousePosition.x(), oldMousePosition.y());
 		}
 		// set current mouse position as old
 		oldMousePosition.setX(event->x());

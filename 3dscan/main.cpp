@@ -73,7 +73,7 @@ uint count;
 int main(int argc, char **argv)
 {
 	// load file
-	std::vector<float> verticesLoaded = xyzFileToVec("C:/all.xyz");
+	std::vector<float> verticesLoaded = xyzFileToVec("C:/cone.xyz");
 	// number of vertices*3
 	count = verticesLoaded.size(); 
 	// number of vertices
@@ -114,14 +114,7 @@ int main(int argc, char **argv)
 	// pass size of vertice vector to QT
 	window.count = count;
 	// set Modelmatrix to Identity 
-	window.model.setToIdentity();
-	// ...
-	window.projection.perspective(60.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
-	// QVector3D(-100, 20, 0) Abstand von Zentrum
-	window.view.lookAt(QVector3D(xsum, ysum, zsum) + QVector3D(0, 0, -100), QVector3D(xsum, ysum, zsum), QVector3D(0, 1, 0));
-	// sums = mean values of all vertices
-	window.center = QVector3D(xsum, ysum, zsum);
-
+	window.cam.init(verticesLoaded, 640, 480);
 	window.colors = colors;
 	// pass format to QT
 	//window.setFormat(format);
