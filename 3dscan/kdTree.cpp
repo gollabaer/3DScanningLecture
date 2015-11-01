@@ -50,8 +50,8 @@ kdTree::Node::Node(std::vector<int> indices, std::vector<float> &points, int dep
 	m_Median = points[(indices[indices.size() / 2]) + axis];
 
 	// set Min and Max
-	m_Max = points[indices[0] + axis];
-	m_Min = points[indices[(indices.size() - 1)] + axis];
+	m_Min = points[indices[0] + axis];
+	m_Max = points[indices[(indices.size() - 1)] + axis];
 
 	// split indices
 	std::vector<int> indicesLeft, indicesRight;
@@ -128,51 +128,59 @@ std::vector<float> kdTree::getPoints()
 
 std::vector<int> kdTree::rangeQuery(QVector3D p1, QVector3D p2)
 {
-	return traverse(m_Root, m_MaxDepth, m_Points, p1, p2);
-}
-
-std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<float> &points, QVector3D p1, QVector3D p2)
-{
-	// choose current axis
-	int axis = depth % m_Dim; // 0 = x, 1 = y, 2 = z
-
-	// if both points are equal/smaller than median, traverse left child
-	if (p1[axis] <= node->getMedian() && p2[axis] <= node->getMedian() && node->getLeftChild() != NULL)
-	{
-		return traverse(node->getLeftChild(), depth - 1, points, p1, p2);
-	}
-
-	// if both points are bigger than median, traverse right child
-	if (p1[axis] > node->getMedian() && p2[axis] > node->getMedian() && node->getRightChild() != NULL)
-	{
-		return traverse(node->getRightChild(), depth - 1, points, p1, p2);
-	}
-
 	// assign lower (a) and upper (b) boundary of range query for each dimension (0,1,2,...)
 	std::vector<float> a, b;
-	for (int iter = 0; iter <= m_Dim; ++iter)
+	a.clear(); a.resize(m_Dim); 
+	b.clear(); b.resize(m_Dim);
+	for (int iter = 0; iter < m_Dim; ++iter)
 	{
-		int pos = (axis + iter) % m_Dim;
-		if (p1[pos] > p2[pos])
+		if (p1[iter] > p2[iter])
 		{
-			b.push_back(p1[pos]);
-			a.push_back(p2[pos]);
+			b[iter] = p1[iter];
+			a[iter] = p2[iter];
 		}
 		else
 		{
-			a.push_back(p1[pos]);
-			b.push_back(p2[pos]);
+			a[iter] = p1[iter];
+			b[iter] = p2[iter];
 		}
 	}
+	// recursivly report points
+	return traverse(m_Root, m_MaxDepth, m_Points, a, b);
+}
 
-	// all combinations for range query a,b with a <= median <b
+std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b)
+{
 	std::vector<int> result;
 	result.clear();
+
+	// choose current axis
+	int axis = depth % m_Dim; // 0 = x, 1 = y, 2 = z
+
+	// if range query is out of bounds, return empty vector
+	if ( a[axis] > node->getMax() || b[axis] < node->getMin() )
+	{
+		return result;
+	}
+
+	// if both points are equal/smaller than median, traverse left child
+	if (b[axis] <= node->getMedian() && node->getLeftChild() != NULL)
+	{
+		return traverse(node->getLeftChild(), depth - 1, points, a, b);
+	}
+
+	// if both points are bigger than median, traverse right child
+	if (a[axis] > node->getMedian() && node->getRightChild() != NULL)
+	{
+		return traverse(node->getRightChild(), depth - 1, points, a, b);
+	}
+	
+	// range queries a,b with a <= median <b
 
 	// check left child and add points to result
 	if (node->getLeftChild() != NULL)
 	{
-		result = traverse(node->getLeftChild(), depth - 1, points, p1, p2);
+		result = traverse(node->getLeftChild(), depth - 1, points, a, b);
 	}
 	else
 	{
@@ -183,7 +191,7 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 			if (points[*it + axis] <= node->getMedian())
 			{
 				// if point fits bounding box in every dimension
-				if (testPointInBoundingBox(*it, axis, points, a, b) == true)
+				if (testPointInRange(*it, axis, points, a, b) == true)
 				{
 					result.push_back(*it);
 				}
@@ -195,7 +203,7 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 	// check right child and add points to result
 	if (node->getRightChild() != NULL)
 	{
-		std::vector<int> resultRight = traverse(node->getRightChild(), depth - 1, points, p1, p2);
+		std::vector<int> resultRight = traverse(node->getRightChild(), depth - 1, points, a, b);
 		// Combine results of left and right child
 		result.reserve(result.size() + resultRight.size()); // preallocate memory
 		result.insert(result.end(), resultRight.begin(), resultRight.end());
@@ -209,7 +217,7 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 			if (points[*it + axis] > node->getMedian())
 			{
 				// if point fits bounding box in every dimension
-				if (testPointInBoundingBox(*it, axis, points, a, b) == true)
+				if (testPointInRange(*it, axis, points, a, b) == true)
 				{
 					result.push_back(*it);
 				}
@@ -218,30 +226,29 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 		}
 	}
 
-	// return Indixlist of points in query range
+	// return Indexlist of points in query range
 	return result;
 }
 
-bool kdTree::testPointInBoundingBox(int index, int axis, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b)
+bool kdTree::testPointInRange(int index, int axis, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b)
 {
 
-	bool pointInBoundingBox = true;
-	for (int iterDim = 0; iterDim <= m_Dim; ++iterDim)
+	bool pointInRange = true;
+	for (int iterDim = 0; iterDim < m_Dim; ++iterDim)
 	{
-		int pos = (axis + iterDim) % m_Dim;
 		// if point is smaller than lower border
-		if (a[iterDim] > points[index + pos])
+		if (a[iterDim] > points[index + iterDim])
 		{
-			pointInBoundingBox = false;
+			pointInRange = false;
 			break;
 		}
 		// if point is bigger than upper border
-		if (b[iterDim] < points[index + pos])
+		if (b[iterDim] < points[index + iterDim])
 		{
-			pointInBoundingBox = false;
+			pointInRange = false;
 			break;
 		}
 	}
-	return pointInBoundingBox;
+	return pointInRange;
 }
 

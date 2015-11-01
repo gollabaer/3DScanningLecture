@@ -49,7 +49,7 @@ private:
 	int m_MaxDepth;
 	int m_Dim;
 	// Functions
-	std::vector<int> traverse(Node* node, int depth, std::vector<float> &points, QVector3D p1, QVector3D p2);
-	bool testPointInBoundingBox(int index, int axis, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b);
+	std::vector<int> traverse(Node* node, int depth, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b);
+	bool testPointInRange(int index, int axis, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b);
 };
 
