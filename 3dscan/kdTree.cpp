@@ -148,7 +148,7 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 		return traverse(node->getRightChild(), depth - 1, points, p1, p2);
 	}
 
-	// assign smaller (a) and bigger (b) border of range query for each dimension (0,1,2,...)
+	// assign lower (a) and upper (b) boundary of range query for each dimension (0,1,2,...)
 	std::vector<float> a, b;
 	for (int iter = 0; iter <= m_Dim; ++iter)
 	{
@@ -169,22 +169,15 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 	std::vector<int> result;
 	result.clear();
 
+	// check left child and add points to result
 	if (node->getLeftChild() != NULL)
 	{
 		result = traverse(node->getLeftChild(), depth - 1, points, p1, p2);
 	}
-
-	if (node->getRightChild() != NULL)
-	{
-		std::vector<int> resultRight = traverse(node->getRightChild(), depth - 1, points, p1, p2);
-		// Combine results of left and right child
-		result.reserve(result.size() + resultRight.size()); // preallocate memory
-		result.insert(result.end(), resultRight.begin(), resultRight.end());
-	}
-
-	if (node->getLeftChild() == NULL)
+	else
 	{
 		std::vector<int> indices = node->getIndices();
+		// traverse (sorted) indices from front to back until value is bigger than median
 		for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
 		{
 			if (points[*it + axis] <= node->getMedian())
@@ -199,10 +192,19 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 		}
 	}
 
-	if (node->getRightChild() == NULL)
+	// check right child and add points to result
+	if (node->getRightChild() != NULL)
+	{
+		std::vector<int> resultRight = traverse(node->getRightChild(), depth - 1, points, p1, p2);
+		// Combine results of left and right child
+		result.reserve(result.size() + resultRight.size()); // preallocate memory
+		result.insert(result.end(), resultRight.begin(), resultRight.end());
+	}
+	else
 	{
 		std::vector<int> indices = node->getIndices();
-		for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
+		// traverse (sorted) indices from back to front until value is smaller than median
+		for (std::vector<int>::reverse_iterator it = indices.rbegin(); it != indices.rend(); ++it)
 		{
 			if (points[*it + axis] > node->getMedian())
 			{
@@ -215,6 +217,8 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 			else break;
 		}
 	}
+
+	// return Indixlist of points in query range
 	return result;
 }
 
