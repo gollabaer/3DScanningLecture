@@ -84,13 +84,13 @@ int main(int argc, char **argv)
 
 
 	kdTree KD = kdTree(verticesLoaded, 8, 3);
-	QVector3D p1 = QVector3D(-10.0, 5, -7);
-	QVector3D p2 = QVector3D(8, -3, 9);
+	QVector3D p1 = QVector3D(-100.0, 50, -70);
+	QVector3D p2 = QVector3D(80, -30, 90);
 	std::vector<int> query = KD.rangeQuery(p1, p2);
 
 	for (std::vector<int>::iterator it = query.begin(); it != query.end(); ++it)
 	{
-		colors[*it * 3] = 0.4;
+		colors[*it] = 0.4;
 	}
 
 

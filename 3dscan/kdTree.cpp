@@ -17,9 +17,9 @@ kdTree::kdTree(std::vector<float> points, int maxDepth, int dim)
 	int help = 0;
 	for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
 	{
-		*it = help++;
+		*it = help++ * m_Dim;
 	}
-	m_Root = &Node(indices, m_Points, m_MaxDepth, m_Dim, NULL);
+		m_Root = new Node(indices, m_Points, m_MaxDepth, m_Dim, NULL);
 }
 
 kdTree::~kdTree()
@@ -43,15 +43,15 @@ kdTree::Node::Node(std::vector<int> indices, std::vector<float> &points, int dep
 	m_RightChild = NULL;
 
 	// sort by axis
-	std::sort(begin(indices), end(indices), [&](size_t a, size_t b) { return points[a*dim + axis] < points[b*dim + axis]; });
+	std::sort(begin(indices), end(indices), [&](size_t a, size_t b) { return points[a + axis] < points[b + axis]; });
 	m_Indices = indices;
 
 	// choose median
-	m_Median = points[(indices[indices.size() / 2] - 1) * dim + axis];
+	m_Median = points[(indices[indices.size() / 2]) + axis];
 
 	// set Min and Max
-	m_Max = points[indices[0] * dim + axis];
-	m_Min = points[(indices.size() - 1) * dim + axis];
+	m_Max = points[indices[0] + axis];
+	m_Min = points[indices[(indices.size() - 1)] + axis];
 
 	// split indices
 	std::vector<int> indicesLeft, indicesRight;
@@ -60,15 +60,15 @@ kdTree::Node::Node(std::vector<int> indices, std::vector<float> &points, int dep
 
 	for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
 	{
-		if (points[*it * dim + axis] <= m_Median)	indicesLeft.push_back(*it);
+		if (points[*it + axis] <= m_Median)	indicesLeft.push_back(*it);
 		else indicesRight.push_back(*it);
 	}
 
 	// construct left and right child
 	if (depth > 1)
 	{
-		if (indicesLeft.size() > 1)	m_LeftChild = &Node(indicesLeft, points, depth - 1, dim, this);
-		if (indicesRight.size() > 1) m_RightChild = &Node(indicesRight, points, depth - 1, dim, this);
+		if (indicesLeft.size() > 1)	m_LeftChild =  new Node(indicesLeft, points, depth - 1, dim, this);
+		if (indicesRight.size() > 1) m_RightChild =  new Node(indicesRight, points, depth - 1, dim, this);
 	}
 
 }
@@ -187,10 +187,10 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 		std::vector<int> indices = node->getIndices();
 		for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
 		{
-			if (points[*it * m_Dim + axis] <= node->getMedian())
+			if (points[*it + axis] <= node->getMedian())
 			{
 				// if point fits bounding box in every dimension
-				if (testPointInBoundingBox(*it * m_Dim, axis, points, a, b) == true)
+				if (testPointInBoundingBox(*it, axis, points, a, b) == true)
 				{
 					result.push_back(*it);
 				}
@@ -204,10 +204,10 @@ std::vector<int> kdTree::traverse(kdTree::Node* node, int depth, std::vector<flo
 		std::vector<int> indices = node->getIndices();
 		for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
 		{
-			if (points[*it * m_Dim + axis] > node->getMedian())
+			if (points[*it + axis] > node->getMedian())
 			{
 				// if point fits bounding box in every dimension
-				if (testPointInBoundingBox(*it * m_Dim, axis, points, a, b) == true)
+				if (testPointInBoundingBox(*it, axis, points, a, b) == true)
 				{
 					result.push_back(*it);
 				}
