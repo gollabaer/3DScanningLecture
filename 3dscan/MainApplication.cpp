@@ -1,65 +1,98 @@
 #include "MainApplication.h"
-#include <mainglwidget.h>
+
 #include <QSlider>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include<qfiledialog.h>
 
-/*
-MainApplication::MainApplication()
-{
+#include <sstream>
+#include <string>
+#include <fstream>
+
+std::vector<float> xyzFileToVec(std::string source){
+
+
+	std::vector<float> vec;
+	vec.reserve(9000000);
+	std::fstream fs;
+	fs.open(source.c_str(), std::ios::in);
+	ulong c = 0;
+
+	for (std::string line; std::getline(fs, line);)
+	{
+		std::istringstream in(line);
+		float x, y, z;
+		in >> x >> y >> z;
+
+		vec.push_back(x);
+		vec.push_back(y);
+		vec.push_back(z);
+		c++;
+	}
+
+	return vec;
 }
-*/
+
 
 MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 {
 	QPushButton *quit = new QPushButton(tr("Quit"));
-	quit->setFont(QFont("Times", 18, QFont::Bold));
+	quit->setFont(QFont("Times", 12, QFont::AnyStyle));
 
-	QSlider *slider = new QSlider(Qt::Horizontal);
-	slider->setRange(0, 99);
-	slider->setValue(0);
+	QPushButton *load = new QPushButton(tr("Load"));
+	load->setFont(QFont("Times", 12, QFont::AnyStyle));
 
-	MainGLWidget *gl = new MainGLWidget();
-	
-	std::vector<float> vertices;
-	vertices.clear();
-	vertices.push_back(10);
-	vertices.push_back(10);
-	vertices.push_back(10);
-	vertices.push_back(0);
-	vertices.push_back(0);
-	vertices.push_back(0);
-	vertices.push_back(-10);
-	vertices.push_back(-10);
-	vertices.push_back(-10);
-	gl->count = vertices.size();
-	gl->vertices = vertices.data();
-	gl->model.setToIdentity();
-	gl->projection.perspective(60.0f, 4.0f / 3.0f, 0.1f, 1000.0f);
-	gl->view.lookAt(QVector3D(0, 0, 0) + QVector3D(0, 0, -2), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
-	gl->center = QVector3D(0, 0, 0);
-	gl->colors = new GLfloat[gl->count];
-	gl->colors[0] = 1;
-	gl->colors[1] = 0;
-	gl->colors[2] = 0;
-	gl->colors[3] = 1;
-	gl->colors[4] = 0;
-	gl->colors[5] = 0;
-	gl->colors[6] = 1;
-	gl->colors[7] = 0;
-	gl->colors[8] = 0;
-	gl->resize(50, 50);
+	QPushButton *rangequery = new QPushButton(tr("Range"));
+	rangequery->setFont(QFont("Times", 12, QFont::AnyStyle));
 
-	this->resize(500, 400);
+	glWidget = new MainGLWidget();
+	glWidget->vertices = {0};
+	glWidget->colors = {0};
+	glWidget->count = 0;
 
-	QVBoxLayout *layout = new QVBoxLayout;
-	layout->addWidget(quit);
-	layout->addWidget(gl);
-	layout->addWidget(slider);
-	setLayout(layout);
+	glWidget->resize(640, 380);
+
+	QHBoxLayout *layoutMain = new QHBoxLayout();
+
+	QVBoxLayout *layoutButtons = new QVBoxLayout();
+
+	connect(quit, SIGNAL(clicked()), this, SLOT(quit()));
+	connect(load, SIGNAL(clicked()), this, SLOT(loadPoints()));
+
+	layoutButtons->addWidget(load);
+	layoutButtons->addWidget(rangequery);
+	layoutButtons->addWidget(quit);
+
+	QWidget* buttonWidget = new QWidget();
+	buttonWidget->setLayout(layoutButtons);
+	buttonWidget->setFixedWidth(120);
+	glWidget->setMinimumWidth(640);
+	glWidget->setMinimumHeight(380);
+	layoutMain->addWidget(glWidget);
+	layoutMain->addWidget(buttonWidget);
+
+	setLayout(layoutMain);
 }
 
 MainApplication::~MainApplication()
 {
 }
 
+void MainApplication::loadPoints(){
+
+	QString fstr = QFileDialog::getOpenFileName(this, tr("Open File"), "c:/", tr("Point Files (*.xyz)"));
+	
+	if (!(fstr != NULL && !fstr.isEmpty()))return;
+
+	std::string str = fstr.toStdString();
+
+	this->points = xyzFileToVec(str.c_str());
+	
+	
+	this->glWidget->colors = new GLfloat[points.size()];
+	for (int i = 0; i < points.size(); i++)
+		this->glWidget->colors[i] = (1.0f);
+	this->glWidget->cam.init(points, 640, 380);
+	this->glWidget->vertices = points.data();
+	this->glWidget->count = points.size();
+}

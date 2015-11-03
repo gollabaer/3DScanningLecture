@@ -1,6 +1,7 @@
 
 #include "mainglwidget.h"
 #include <QMouseEvent>
+
 static const char *vertexShaderSource =
 "attribute highp vec4 posAttr;\n"
 "attribute lowp vec4 colAttr;\n"
@@ -38,11 +39,12 @@ void MainGLWidget::initializeGL(){
 	m_posAttr = m_program->attributeLocation("posAttr");
 	m_colAttr = m_program->attributeLocation("colAttr");
 	m_matrixUniform = m_program->uniformLocation("matrix");
-
 }
 
 
 void MainGLWidget::paintGL() {
+	
+	if (count == 0) return;
 	// set up viewport
 	glViewport(0, 0, width(), height());
 

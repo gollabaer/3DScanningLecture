@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include "MainApplication.h"
 
 #include <kdTree.h>
 
@@ -13,89 +14,19 @@
 #include <QtGui/QScreen>
 #include <QtCore/qmath.h>
 
-#include "mainglwidget.h"
-
-double xsum , ysum, zsum ;
 
 struct doublepair{
 	public:
 		double x, y;
 };
 
-doublepair xminmax, yminmax, zminmax;
-
-std::vector<float> xyzFileToVec(std::string source){
-	
-	xminmax.x = 0;
-	xminmax.y = 0;
-	yminmax.x = 0;
-	yminmax.y = 0;
-	zminmax.x = 0;
-	zminmax.y = 0;
-
-	xsum = 0;
-	ysum = 0;
-	zsum = 0;
-
-	std::vector<float> vec; 
-	vec.reserve(9000000);
-	std::fstream fs;
-	fs.open(source.c_str(), std::ios::in);
-	ulong c = 0;
-
-	for (std::string line; std::getline(fs, line);)
-	{
-		std::istringstream in(line);
-		float x, y, z;
-		in >> x >> y >> z;   
-		xsum += x;
-		ysum += y;
-		zsum += z;
-		vec.push_back(x);
-		vec.push_back(y);
-		vec.push_back(z);
-		c++;
-	}
-
-	xsum /= (vec.size() / 3);
-	ysum /= (vec.size() / 3);
-	zsum /= (vec.size() / 3);
-
-	return vec;
-}
-
-
-GLfloat* vertices;
-uint count;
 
 
 
 int main(int argc, char **argv)
 {
-	// load file
-	std::vector<float> verticesLoaded = xyzFileToVec("C:/cone.xyz");
-	// number of vertices*3
-	count = verticesLoaded.size(); 
-	// number of vertices
-	vertices = verticesLoaded.data();
-	GLfloat *colors = new GLfloat[count];
-	for (int i = 0; i < count; ++i)
-		colors[i] = 1.;
-
-
-	kdTree KD = kdTree(verticesLoaded, 8, 3);
-	QVector3D p1 = QVector3D(-20, -50, -50);
-	QVector3D p2 = QVector3D(10, 50, -100);
-	std::vector<int> query = KD.rangeQuery(p1, p2);
-
-	for (std::vector<int>::iterator it = query.begin(); it != query.end(); ++it)
-	{
-		colors[*it] = 0.9;
-		colors[*it + 1] = 0;
-		colors[*it + 2] = 0.2;
-	}
-
-
+	
+	
 	//start QT GUI
 	QApplication app(argc, argv);
 
@@ -108,19 +39,9 @@ int main(int argc, char **argv)
 	// Set the preferred number of samples per pixel when multisampling is enabled.
 	//format.setSamples(16);
 
-	MainGLWidget window;
-	// pass vertices to QT
-	window.vertices = vertices;
-	// pass size of vertice vector to QT
-	window.count = count;
-	// set Modelmatrix to Identity 
-	window.cam.init(verticesLoaded, 640, 480);
-	window.colors = colors;
-	// pass format to QT
-	//window.setFormat(format);
-	// change window size
-	window.resize(640, 480);
-	// show window
+	 MainApplication window;
+
+	
 	window.show();
 
 
