@@ -58,6 +58,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 
 	connect(quit, SIGNAL(clicked()), this, SLOT(quit()));
 	connect(load, SIGNAL(clicked()), this, SLOT(loadPoints()));
+	connect(rangequery, SIGNAL(clicked()), this, SLOT(rangeQuery()));
 
 	layoutButtons->addWidget(load);
 	layoutButtons->addWidget(rangequery);
@@ -95,4 +96,8 @@ void MainApplication::loadPoints(){
 	this->glWidget->cam.init(points, 640, 380);
 	this->glWidget->vertices = points.data();
 	this->glWidget->count = points.size();
+}
+
+void MainApplication::rangeQuery(){
+
 }
