@@ -3,7 +3,8 @@
 #include <QSlider>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include<qfiledialog.h>
+#include <qfiledialog.h>
+#include <qinputdialog.h>
 
 #include <sstream>
 #include <string>
@@ -96,8 +97,40 @@ void MainApplication::loadPoints(){
 	this->glWidget->cam.init(points, 640, 380);
 	this->glWidget->vertices = points.data();
 	this->glWidget->count = points.size();
+
+	this->_kdTree = kdTree(points, 100, 3);
 }
 
 void MainApplication::rangeQuery(){
+	QString str = QInputDialog::getText(this, "Input points:", "x1 y1 z1 x2 y2 z2");
+	if (!(str != NULL && !str.isEmpty()))return;
+	QStringList strList = str.split(" ");
+
+	if (strList.size() != 6) return;
+
+	QVector3D v1 = QVector3D(0, 0, 0);
+	QVector3D v2 = QVector3D(0, 0, 0);
+
+	v1.setX(strList.at(0).toFloat());
+	v1.setY(strList.at(1).toFloat());
+	v1.setZ(strList.at(2).toFloat());
+	
+	v2.setX(strList.at(3).toFloat());
+	v2.setY(strList.at(4).toFloat());
+	v2.setZ(strList.at(5).toFloat());
+
+	std::vector<int> quvec;
+	quvec = _kdTree.rangeQuery(v1, v2);
+
+	for (int i = 0; i < glWidget->count; i++)
+		glWidget->colors[i] = 1;
+
+	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
+	{
+
+		glWidget->colors[*it] = 0.9;
+		glWidget->colors[*it + 1] = 0;
+		glWidget->colors[*it + 2] = 0.2;
+	}
 
 }
