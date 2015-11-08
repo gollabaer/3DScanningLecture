@@ -3,6 +3,7 @@
 #include "kdTree.h"
 #include <vector>
 #include "mainglwidget.h"
+#include <qlabel.h>
 
 #pragma once
 
@@ -19,6 +20,8 @@ private:
 	kdTree _kdTree;
 	std::vector<float> points;
 	MainGLWidget * glWidget;
+	QLabel* labelCloudBounds;
+	
 
 private slots:
 	void loadPoints();

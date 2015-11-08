@@ -41,5 +41,4 @@ Win32/
 3dscan/Debug
 3dscan/DebugGeneratedFiles
 
-/3dscan/3dscan.vcxproj
 *.opensdf

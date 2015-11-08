@@ -13,7 +13,7 @@ kdTree::kdTree(std::vector<float> points, int maxDepth, int dim)
 	m_Dim = dim;
 	std::vector<int> indices;
 
-	indices.resize(points.size() / 3);
+	indices.resize(points.size() / dim);
 	int help = 0;
 	for (std::vector<int>::iterator it = indices.begin(); it != indices.end(); ++it)
 	{
@@ -116,7 +116,7 @@ std::vector<int> kdTree::Node::getIndices()
 
 int kdTree::getNumberOfPoints()
 {
-	return m_Points.size() / 3;
+	return m_Points.size() / m_Dim;
 }
 
 std::vector<float> kdTree::getPoints()

@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <sstream>
 
 std::vector<float> xyzFileToVec(std::string source){
 
@@ -51,6 +52,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	glWidget->colors = {0};
 	glWidget->count = 0;
 
+	labelCloudBounds = new QLabel("---", this);
+	labelCloudBounds->setMaximumHeight(60);
+
 	glWidget->resize(640, 380);
 
 	QHBoxLayout *layoutMain = new QHBoxLayout();
@@ -61,6 +65,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	connect(load, SIGNAL(clicked()), this, SLOT(loadPoints()));
 	connect(rangequery, SIGNAL(clicked()), this, SLOT(rangeQuery()));
 
+	layoutButtons->addWidget(labelCloudBounds);
 	layoutButtons->addWidget(load);
 	layoutButtons->addWidget(rangequery);
 	layoutButtons->addWidget(quit);
@@ -82,9 +87,13 @@ MainApplication::~MainApplication()
 
 void MainApplication::loadPoints(){
 
+	labelCloudBounds->setText("Loading...");
 	QString fstr = QFileDialog::getOpenFileName(this, tr("Open File"), "c:/", tr("Point Files (*.xyz)"));
 	
-	if (!(fstr != NULL && !fstr.isEmpty()))return;
+	if (!(fstr != NULL && !fstr.isEmpty())){
+		labelCloudBounds->setText("---");
+		return;
+	}
 
 	std::string str = fstr.toStdString();
 
@@ -94,7 +103,16 @@ void MainApplication::loadPoints(){
 	this->glWidget->colors = new GLfloat[points.size()];
 	for (int i = 0; i < points.size(); i++)
 		this->glWidget->colors[i] = (1.0f);
-	this->glWidget->cam.init(points, 640, 380);
+	std::vector<float> bbox = this->glWidget->cam.init(points, 640, 380);
+
+	std::stringstream sStream;
+	sStream.precision(2);
+	sStream << bbox[0] << ":" << bbox[21] << "\n" << bbox[1] << ":" << bbox[22] << "\n" << bbox[2] << ":" << bbox[23];
+
+	std::string ts = sStream.str();
+
+	labelCloudBounds->setText(QString(ts.c_str()));
+
 	this->glWidget->vertices = points.data();
 	this->glWidget->count = points.size();
 
