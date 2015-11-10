@@ -1,4 +1,5 @@
 #include "kdTree.h"
+#include <assert.h> 
 
 // Constructors
 
@@ -315,6 +316,17 @@ std::vector<int> kdTree::nearestNeighbor(QVector3D p)
 
 }
 
+double kdTree::squaredEuclidianDistance(std::vector<float> &p1, std::vector<float> &p2)
+{
+	assert(p1.size() == p2.size());
+	double result = 0;
+	for (int iter = 0; iter <= p1.size() - 1; iter++)
+	{
+		result += p1[iter] * p1[iter];
+		result += p2[iter] * p2[iter];
+	}
+	return result;
+}
 
 
 

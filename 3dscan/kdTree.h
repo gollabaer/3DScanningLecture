@@ -53,5 +53,6 @@ private:
 	int m_MaxDepth;
 	int m_Dim;
 	// Functions
+	double squaredEuclidianDistance(std::vector<float> &p1, std::vector<float> &p2);
 };
 
