@@ -15,7 +15,7 @@ std::vector<float> xyzFileToVec(std::string source){
 
 
 	std::vector<float> vec;
-	vec.reserve(9000000);
+	vec.reserve(3000000);
 	std::fstream fs;
 	fs.open(source.c_str(), std::ios::in);
 	ulong c = 0;

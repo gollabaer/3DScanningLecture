@@ -240,6 +240,37 @@ bool kdTree::Node::testPointInRange(int index, int axis, std::vector<float> &poi
 }
 
 
+kdTree::Node* kdTree::Node::locatePoint(QVector3D p, int depth , int &dim)
+{
+	// choose current axis
+	int axis = depth % dim; // 0 = x, 1 = y, 2 = z
+
+	if (p[axis] <= this->m_Median)
+	{
+		if (this->m_LeftChild != NULL)
+		{
+			return this->m_LeftChild->locatePoint(p, depth - 1, dim);
+		}
+		else
+		{
+			return this;
+		}
+	}
+	else
+	{
+		if (this->m_RightChild != NULL)
+		{
+			return this->m_RightChild->locatePoint(p, depth - 1, dim);
+		}
+		else
+		{
+			return this;
+		}
+	}
+	
+}
+
+
 // Getters
 
 int kdTree::getNumberOfPoints()
@@ -276,6 +307,14 @@ std::vector<int> kdTree::rangeQuery(QVector3D p1, QVector3D p2)
 	// recursivly report points
 	return this->m_Root->reportPoints(this->m_MaxDepth, this->m_Points, a, b, this->m_Dim);
 }
+
+std::vector<int> kdTree::nearestNeighbor(QVector3D p)
+{
+	Node* location = this->m_Root->locatePoint(p, this->m_MaxDepth, this->m_Dim);
+	return std::vector<int>();
+
+}
+
 
 
 
