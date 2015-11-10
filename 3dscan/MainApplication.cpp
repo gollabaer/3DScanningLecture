@@ -107,16 +107,18 @@ void MainApplication::loadPoints(){
 
 	std::stringstream sStream;
 	sStream.precision(2);
-	sStream << bbox[0] << ":" << bbox[21] << "\n" << bbox[1] << ":" << bbox[22] << "\n" << bbox[2] << ":" << bbox[23];
+	sStream << bbox[0] << ":" << bbox[18] << "\n" << bbox[1] << ":" << bbox[19] << "\n" << bbox[2] << ":" << bbox[20];
 
 	std::string ts = sStream.str();
-
-	labelCloudBounds->setText(QString(ts.c_str()));
-
+	
 	this->glWidget->vertices = points.data();
 	this->glWidget->count = points.size();
 
+	labelCloudBounds->setText("Building kdTree...");
+
 	this->_kdTree = kdTree(points, 100, 3);
+
+	labelCloudBounds->setText(QString(ts.c_str()));
 }
 
 void MainApplication::rangeQuery(){

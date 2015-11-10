@@ -24,7 +24,7 @@ private:
 		// Constructors
 		Node();
 		~Node();
-		Node(std::vector<int> indices, std::vector<float> &points, int depth, int dim, Node* parent);
+		Node(std::vector<int>* indices, std::vector<float> &points, int depth, int dim, Node* parent);
 		// Getter
 		Node* getParent();
 		Node* getLeftChild();
@@ -33,6 +33,8 @@ private:
 		float getMax();
 		float getMin();
 		std::vector<int> getIndices();
+		std::vector<int> reportPoints(int depth, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b, int &dim);
+		bool testPointInRange(int index, int axis, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b, int &dim);
 	private:
 		// Member Variables
 		Node* m_Parent; // Parent Node
@@ -41,7 +43,7 @@ private:
 		int m_Median; // Median value that was used for splitting on current axis
 		float m_Min; // Minimum Value of Node's points on current axis
 		float m_Max; // Maximum Value of Node's points on current axis
-		std::vector<int> m_Indices; // Indices of Node's points
+		std::vector<int>* m_Indices; // Indices of Node's points
 	};
 	// Member Variables
 	Node* m_Root;
@@ -49,7 +51,6 @@ private:
 	int m_MaxDepth;
 	int m_Dim;
 	// Functions
-	std::vector<int> traverse(Node* node, int depth, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b);
-	bool testPointInRange(int index, int axis, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b);
+	
 };
 
