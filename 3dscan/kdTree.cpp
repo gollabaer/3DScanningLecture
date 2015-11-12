@@ -25,6 +25,8 @@ kdTree::kdTree(std::vector<float> points, int maxDepth, int dim)
 
 kdTree::~kdTree()
 {
+	// TODO: delete indices?
+	// TODO: delete root?
 };
 
 // Node Class
@@ -60,6 +62,7 @@ kdTree::Node::Node(std::vector<int>* indices, std::vector<float> &points, int de
 	indicesLeft->clear();
 	indicesRight->clear();
 
+	// TODO: may be faster using range copy, since indices are sorted?
 	for (std::vector<int>::iterator it = indices->begin(); it != indices->end(); ++it)
 	{
 		if (points[*it + axis] <= m_Median)	indicesLeft->push_back(*it);
@@ -102,6 +105,7 @@ kdTree::Node::Node(std::vector<int>* indices, std::vector<float> &points, int de
 }
 kdTree::Node::~Node()
 {
+	// TODO: delete childs?
 }
 
 kdTree::Node* kdTree::Node::getParent()
@@ -139,8 +143,12 @@ std::vector<int> kdTree::Node::getIndices()
 	return *m_Indices;
 }
 
+// recursively reports points in the subree of the node which reside in the bounding box defined by a and b
+// a := box min
+// b := box max
 std::vector<int> kdTree::Node::reportPoints(int depth, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b, int &dim)
 {
+	// TODO: check that b ">" a
 	std::vector<int> result;
 	result.clear();
 
