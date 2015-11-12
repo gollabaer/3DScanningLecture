@@ -48,8 +48,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	rangequery->setFont(QFont("Times", 12, QFont::AnyStyle));
 
 	glWidget = new MainGLWidget();
-	glWidget->vertices = {0};
-	glWidget->colors = {0};
+	GLfloat initialVertexAttributes[] = { 0 };
+	glWidget->vertices = initialVertexAttributes;
+	glWidget->colors = initialVertexAttributes;
 	glWidget->count = 0;
 
 	labelCloudBounds = new QLabel("---", this);
