@@ -249,7 +249,7 @@ bool kdTree::Node::testPointInRange(int index, int axis, std::vector<float> &poi
 }
 
 
-kdTree::Node* kdTree::Node::locatePoint(QVector3D p, int depth , int &dim)
+kdTree::Node* kdTree::Node::locatePoint(std::vector<float> p, int depth , int &dim)
 {
 	// choose current axis
 	int axis = depth % dim; // 0 = x, 1 = y, 2 = z
@@ -294,7 +294,7 @@ std::vector<float> kdTree::getPoints()
 
 // Functions
 
-std::vector<int> kdTree::rangeQuery(QVector3D p1, QVector3D p2)
+std::vector<int> kdTree::rangeQuery(std::vector<float> p1, std::vector<float> p2)
 {
 	// assign lower (a) and upper (b) boundary of range query for each dimension (0,1,2,...)
 	std::vector<float> a, b;
@@ -317,10 +317,56 @@ std::vector<int> kdTree::rangeQuery(QVector3D p1, QVector3D p2)
 	return this->m_Root->reportPoints(this->m_MaxDepth, this->m_Points, a, b, this->m_Dim);
 }
 
-std::vector<int> kdTree::nearestNeighbor(QVector3D p)
+
+std::vector<float> kdTree::indexToVector(int i)
+{
+	return std::vector<float>(this->m_Points.begin() + i,
+		this->m_Points.begin() + i + (m_Dim));
+}
+
+int kdTree::nearestNeighbor(std::vector<float> p)
 {
 	Node* location = this->m_Root->locatePoint(p, this->m_MaxDepth, this->m_Dim);
-	return std::vector<int>();
+
+	std::vector<int> ind_points = location->getIndices();
+
+	std::vector<float> t_vec = indexToVector(ind_points[0]);
+	float t_dist = squaredEuclidianDistance(p,t_vec);
+	int index = ind_points[0];
+
+	for (int i = 1; i < ind_points.size();i++){
+		t_vec = indexToVector(ind_points[i]);
+		float t_t_dist = squaredEuclidianDistance(p, t_vec);
+		if (t_t_dist < t_dist){
+			t_dist = t_t_dist;
+			index = ind_points[i];
+		}	
+	}
+
+	std::vector<float> q1 = p, q2 = p;
+
+	t_dist = std::sqrt(t_dist);
+	for (int i = 0; i < this->m_Dim; i++){
+		q1[i] += t_dist;
+		q2[i] -= t_dist;
+	}
+
+	std::vector<int> ind_points_range = rangeQuery(q1, q2);
+
+	t_vec = indexToVector(ind_points_range[0]);
+	t_dist = squaredEuclidianDistance(p, t_vec);
+	index = ind_points_range[0];
+
+	for (int i = 1; i < ind_points_range.size(); i++){
+		t_vec = indexToVector(ind_points_range[i]);
+		float t_t_dist = squaredEuclidianDistance(p, t_vec);
+		if (t_t_dist < t_dist){
+			t_dist = t_t_dist;
+			index = ind_points_range[i];
+		}
+	}
+
+	return index;
 
 }
 
@@ -330,8 +376,7 @@ double kdTree::squaredEuclidianDistance(std::vector<float> &p1, std::vector<floa
 	double result = 0;
 	for (int iter = 0; iter <= p1.size() - 1; iter++)
 	{
-		result += p1[iter] * p1[iter];
-		result += p2[iter] * p2[iter];
+		result += (p1[iter] - p2[iter]) * (p1[iter] - p2[iter]);
 	}
 	return result;
 }

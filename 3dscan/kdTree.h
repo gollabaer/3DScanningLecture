@@ -15,8 +15,9 @@ public:
 	int getNumberOfPoints(); // returns the number of points stored in the kd Tree
 	std::vector<float> getPoints(); // returns a vector containing all stored points
 	// Functions
-	std::vector<int> rangeQuery(QVector3D p1, QVector3D p2); // returns the indices of all points inside the box formed by p1 and p2
-	std::vector<int> nearestNeighbor(QVector3D p); // the coordinates of the nearest neighbor
+	std::vector<int> rangeQuery(std::vector<float> p1, std::vector<float> p2); // returns the indices of all points inside the box formed by p1 and p2
+	int nearestNeighbor(std::vector<float> p); // the coordinates of the nearest neighbor
+	std::vector<float> indexToVector(int i);
 private:
 	// Node Class
 	class Node
@@ -36,7 +37,7 @@ private:
 		std::vector<int> getIndices();
 		std::vector<int> reportPoints(int depth, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b, int &dim);
 		bool testPointInRange(int index, int axis, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b, int &dim);
-		Node* locatePoint(QVector3D p, int depth, int &dim);
+		Node* locatePoint(std::vector<float> p, int depth, int &dim);
 	private:
 		// Member Variables
 		Node* m_Parent; // Parent Node

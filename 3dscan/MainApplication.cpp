@@ -38,14 +38,17 @@ std::vector<float> xyzFileToVec(std::string source){
 
 MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 {
-	QPushButton *quit = new QPushButton(tr("Quit"));
-	quit->setFont(QFont("Times", 12, QFont::AnyStyle));
+	QPushButton *quitButton = new QPushButton(tr("Quit"));
+	quitButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
-	QPushButton *load = new QPushButton(tr("Load"));
-	load->setFont(QFont("Times", 12, QFont::AnyStyle));
+	QPushButton *loadButton = new QPushButton(tr("Load"));
+	loadButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
-	QPushButton *rangequery = new QPushButton(tr("Range"));
-	rangequery->setFont(QFont("Times", 12, QFont::AnyStyle));
+	QPushButton *rangequeryButton = new QPushButton(tr("Range"));
+	rangequeryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+
+	QPushButton *nnqueryButton = new QPushButton(tr("NN-Query"));
+	nnqueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
 	glWidget = new MainGLWidget();
 	GLfloat initialVertexAttributes[] = { 0 };
@@ -62,14 +65,17 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 
 	QVBoxLayout *layoutButtons = new QVBoxLayout();
 
-	connect(quit, SIGNAL(clicked()), this, SLOT(quit()));
-	connect(load, SIGNAL(clicked()), this, SLOT(loadPoints()));
-	connect(rangequery, SIGNAL(clicked()), this, SLOT(rangeQuery()));
+	connect(quitButton, SIGNAL(clicked()), this, SLOT(quit()));
+	connect(loadButton, SIGNAL(clicked()), this, SLOT(loadPoints()));
+	connect(rangequeryButton, SIGNAL(clicked()), this, SLOT(rangeQuery()));
+	connect(nnqueryButton, SIGNAL(clicked()), this, SLOT(nnQuery()));
 
 	layoutButtons->addWidget(labelCloudBounds);
-	layoutButtons->addWidget(load);
-	layoutButtons->addWidget(rangequery);
-	layoutButtons->addWidget(quit);
+	layoutButtons->addWidget(loadButton);
+	layoutButtons->addWidget(rangequeryButton);
+	layoutButtons->addWidget(nnqueryButton);
+	layoutButtons->addWidget(quitButton);
+	
 
 	QWidget* buttonWidget = new QWidget();
 	buttonWidget->setLayout(layoutButtons);
@@ -129,16 +135,15 @@ void MainApplication::rangeQuery(){
 
 	if (strList.size() != 6) return;
 
-	QVector3D v1 = QVector3D(0, 0, 0);
-	QVector3D v2 = QVector3D(0, 0, 0);
-
-	v1.setX(strList.at(0).toFloat());
-	v1.setY(strList.at(1).toFloat());
-	v1.setZ(strList.at(2).toFloat());
+	std::vector<float> v1 ,v2;
 	
-	v2.setX(strList.at(3).toFloat());
-	v2.setY(strList.at(4).toFloat());
-	v2.setZ(strList.at(5).toFloat());
+	v1.push_back(strList.at(0).toFloat());
+	v1.push_back(strList.at(1).toFloat());
+	v1.push_back(strList.at(2).toFloat());
+	
+	v2.push_back(strList.at(3).toFloat());
+	v2.push_back(strList.at(4).toFloat());
+	v2.push_back(strList.at(5).toFloat());
 
 	std::vector<int> quvec;
 	quvec = _kdTree.rangeQuery(v1, v2);
@@ -153,5 +158,32 @@ void MainApplication::rangeQuery(){
 		glWidget->colors[*it + 1] = 0;
 		glWidget->colors[*it + 2] = 0.2;
 	}
+
+}
+
+
+void MainApplication::nnQuery(){
+	QString str = QInputDialog::getText(this, "Input point:", "x1 y1 z1");
+	if (!(str != NULL && !str.isEmpty()))return;
+	QStringList strList = str.split(" ");
+
+	if (strList.size() != 3) return;
+
+	std::vector<float> v1;
+
+	v1.push_back(strList.at(0).toFloat());
+	v1.push_back(strList.at(1).toFloat());
+	v1.push_back(strList.at(2).toFloat());
+
+	int ind_NN = _kdTree.nearestNeighbor(v1);
+	
+	for (int i = 0; i < glWidget->count; i++)
+		glWidget->colors[i] = 0.5f;
+
+
+	glWidget->colors[ind_NN] = 1.0f;
+	glWidget->colors[ind_NN + 1] = 0.0f;
+	glWidget->colors[ind_NN + 2] = 0.0f;
+	
 
 }

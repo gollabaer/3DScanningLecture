@@ -26,5 +26,6 @@ private:
 private slots:
 	void loadPoints();
 	void rangeQuery();
+	void nnQuery();
 };
 
