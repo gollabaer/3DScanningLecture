@@ -17,7 +17,6 @@ public:
 	// Functions
 	std::vector<int> rangeQuery(std::vector<float> p1, std::vector<float> p2); // returns the indices of all points inside the box formed by p1 and p2
 	int nearestNeighbor(std::vector<float> p); // the coordinates of the nearest neighbor
-	std::vector<float> indexToVector(int i);
 private:
 	// Node Class
 	class Node
@@ -35,15 +34,15 @@ private:
 		float getMax();
 		float getMin();
 		std::vector<int> getIndices();
-		std::vector<int> reportPoints(int depth, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b, int &dim);
-		bool testPointInRange(int index, int axis, std::vector<float> &points, std::vector<float> &a, std::vector<float> &b, int &dim);
-		Node* locatePoint(std::vector<float> p, int depth, int &dim);
+		std::vector<int> reportPoints(int depth, std::vector<float> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary, int &dim); // recursively reports points in the subree of the node inbetween the lower and upper boundary
+		bool testPointInRange(int index, int axis, std::vector<float> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary, int &dim); // test if the point defined by index is located inbetween the lower and upper boundary in every dimension
+		Node* locatePoint(std::vector<float> p, int depth, int &dim); // locate the leaf node which would contain p
 	private:
 		// Member Variables
 		Node* m_Parent; // Parent Node
 		Node* m_LeftChild; // Child Node <= Median
 		Node* m_RightChild; // Child Node > Median
-		int m_Median; // Median value that was used for splitting on current axis
+		float m_Median; // Median value that was used for splitting on current axis
 		float m_Min; // Minimum Value of Node's points on current axis
 		float m_Max; // Maximum Value of Node's points on current axis
 		std::vector<int>* m_Indices; // Indices of Node's points
@@ -55,5 +54,6 @@ private:
 	int m_Dim;
 	// Functions
 	double squaredEuclidianDistance(std::vector<float> &p1, std::vector<float> &p2);
+	std::vector<float> indexToVector(int i);
 };
 
