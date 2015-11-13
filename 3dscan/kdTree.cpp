@@ -60,7 +60,7 @@ kdTree::Node::Node(std::vector<int>* indices, std::vector<float> &points, int de
 	{
 		medianIndex = indices->size() / 2;
 	}
-	m_Median = points[(indices->operator[](medianIndex)) + axis];	
+	m_Median = points[(indices->operator[](medianIndex)) + axis];
 
 	// set Min and Max
 	m_Min = points[indices->operator[](0) + axis];
@@ -81,7 +81,7 @@ kdTree::Node::Node(std::vector<int>* indices, std::vector<float> &points, int de
 	{
 		std::vector<int>* indicesRight = new std::vector<int>();
 		indicesRight->clear();
-				
+
 		// find trueMedianIndex
 		for (int index = medianIndex; index <= indices->size() - 1; ++index)
 		{
@@ -95,14 +95,14 @@ kdTree::Node::Node(std::vector<int>* indices, std::vector<float> &points, int de
 
 		// copy all indices between the trueMedianIndex + 1 and the last index into indicesRight
 		indicesRight->resize(indices->size() - trueMedianIndex - 1);
-		std::copy(indices->begin() + trueMedianIndex +  1, indices->end(), indicesRight->begin());
+		std::copy(indices->begin() + trueMedianIndex + 1, indices->end(), indicesRight->begin());
 
 		// build right child node
 		m_RightChild = new Node(indicesRight, points, depth - 1, dim, this);
 	}
 
 	// left child can't be empty since size > 1 and Median is part of left child
-	std::vector<int>* indicesLeft = new std::vector<int>();	
+	std::vector<int>* indicesLeft = new std::vector<int>();
 	indicesLeft->clear();
 
 	// copy all indices between the first index and the trueMedianIndex into indicesLeft
@@ -179,7 +179,7 @@ std::vector<int> kdTree::Node::reportPoints(int depth, std::vector<float> &point
 	if (this->m_RightChild != NULL)
 	{
 		result = this->m_RightChild->reportPoints(depth - 1, points, lowerBoundary, upperBoundary, dim);
-		
+
 	}
 	// check left child and add points to result
 	if (this->m_LeftChild != NULL)
@@ -194,11 +194,11 @@ std::vector<int> kdTree::Node::reportPoints(int depth, std::vector<float> &point
 		// traverse (sorted) indices from front to back until value is bigger than median
 		for (std::vector<int>::iterator it = this->m_Indices->begin(); it != this->m_Indices->end(); ++it)
 		{
-				// if point fits bounding box in every dimension
-				if (testPointInRange(*it, axis, points, lowerBoundary, upperBoundary, dim) == true)
-				{
-					result.push_back(*it);
-				}
+			// if point fits bounding box in every dimension
+			if (testPointInRange(*it, axis, points, lowerBoundary, upperBoundary, dim) == true)
+			{
+				result.push_back(*it);
+			}
 		}
 	}
 	// return Indexlist of points in query range
@@ -262,6 +262,12 @@ kdTree::Node* kdTree::Node::locatePoint(std::vector<float> p, int depth, int &di
 
 }
 
+bool kdTree::Node::isLeaf()
+{
+	if (this->m_Indices != NULL) return true;
+	else return false;
+}
+
 
 // Getters
 
@@ -309,48 +315,65 @@ std::vector<float> kdTree::indexToVector(int i)
 
 int kdTree::nearestNeighbor(std::vector<float> p)
 {
+	// location is not always a leaf node and has indices
 	Node* location = this->m_Root->locatePoint(p, this->m_MaxDepth, this->m_Dim);
 
-	std::vector<int> ind_points = location->getIndices();
+	return closestPointFromLocation(location, p);
 
-	std::vector<float> t_vec = indexToVector(ind_points[0]);
-	float t_dist = squaredEuclidianDistance(p, t_vec);
-	int index = ind_points[0];
+}
 
-	for (int i = 1; i < ind_points.size(); i++){
-		t_vec = indexToVector(ind_points[i]);
-		float t_t_dist = squaredEuclidianDistance(p, t_vec);
-		if (t_t_dist < t_dist){
-			t_dist = t_t_dist;
-			index = ind_points[i];
+int kdTree::closestPointFromLocation(kdTree::Node* location, std::vector<float> p)
+{
+	// location is not a leaf node if the value is bigger than the median, but no right child exitsts
+	if (!location->isLeaf())
+	{
+		return closestPointFromLocation(location->getLeftChild(), p);
+	}
+	else
+	{
+		std::vector<int> ind_points = location->getIndices();
+
+		std::vector<float> t_vec = indexToVector(ind_points[0]);
+		float t_dist = squaredEuclidianDistance(p, t_vec);
+		int index = ind_points[0];
+
+		for (int i = 1; i < ind_points.size(); i++){
+			t_vec = indexToVector(ind_points[i]);
+			float t_t_dist = squaredEuclidianDistance(p, t_vec);
+			if (t_t_dist < t_dist){
+				t_dist = t_t_dist;
+				index = ind_points[i];
+			}
 		}
-	}
 
-	std::vector<float> q1 = p, q2 = p;
+		std::vector<float> q1 = p, q2 = p;
 
-	t_dist = std::sqrt(t_dist);
-	for (int i = 0; i < this->m_Dim; i++){
-		q1[i] += t_dist;
-		q2[i] -= t_dist;
-	}
-
-	std::vector<int> ind_points_range = rangeQuery(q1, q2);
-
-	t_vec = indexToVector(ind_points_range[0]);
-	t_dist = squaredEuclidianDistance(p, t_vec);
-	index = ind_points_range[0];
-
-	for (int i = 1; i < ind_points_range.size(); i++){
-		t_vec = indexToVector(ind_points_range[i]);
-		float t_t_dist = squaredEuclidianDistance(p, t_vec);
-		if (t_t_dist < t_dist){
-			t_dist = t_t_dist;
-			index = ind_points_range[i];
+		t_dist = std::sqrt(t_dist);
+		for (int i = 0; i < this->m_Dim; i++){
+			q1[i] += t_dist;
+			q2[i] -= t_dist;
 		}
+
+
+		std::vector<int> ind_points_range = rangeQuery(q1, q2);
+
+		t_vec = indexToVector(ind_points_range[0]);
+		t_dist = squaredEuclidianDistance(p, t_vec);
+		index = ind_points_range[0];
+
+
+		for (int i = 1; i < ind_points_range.size(); i++)
+		{
+			t_vec = indexToVector(ind_points_range[i]);
+			float t_t_dist = squaredEuclidianDistance(p, t_vec);
+			if (t_t_dist < t_dist){
+				t_dist = t_t_dist;
+				index = ind_points_range[i];
+			}
+		}
+
+		return index;
 	}
-
-	return index;
-
 }
 
 double kdTree::squaredEuclidianDistance(std::vector<float> &p1, std::vector<float> &p2)

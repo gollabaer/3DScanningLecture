@@ -34,6 +34,7 @@ private:
 		float getMax();
 		float getMin();
 		std::vector<int> getIndices();
+		bool isLeaf();
 		std::vector<int> reportPoints(int depth, std::vector<float> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary, int &dim); // recursively reports points in the subree of the node inbetween the lower and upper boundary
 		bool testPointInRange(int index, int axis, std::vector<float> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary, int &dim); // test if the point defined by index is located inbetween the lower and upper boundary in every dimension
 		Node* locatePoint(std::vector<float> p, int depth, int &dim); // locate the leaf node which would contain p
@@ -55,5 +56,6 @@ private:
 	// Functions
 	double squaredEuclidianDistance(std::vector<float> &p1, std::vector<float> &p2);
 	std::vector<float> indexToVector(int i);
+	int kdTree::closestPointFromLocation(kdTree::Node* location, std::vector<float> p);
 };
 

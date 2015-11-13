@@ -162,13 +162,15 @@ void MainApplication::rangeQuery(){
 }
 
 
-void MainApplication::nnQuery(){
+void MainApplication::nnQuery()
+{
 	QString str = QInputDialog::getText(this, "Input point:", "x1 y1 z1");
 	if (!(str != NULL && !str.isEmpty()))return;
 	QStringList strList = str.split(" ");
 
 	if (strList.size() != 3) return;
-
+	
+	labelCloudBounds->setText("Locating NN..");
 	std::vector<float> v1;
 
 	v1.push_back(strList.at(0).toFloat());
@@ -178,12 +180,12 @@ void MainApplication::nnQuery(){
 	int ind_NN = _kdTree.nearestNeighbor(v1);
 	
 	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 0.5f;
+		glWidget->colors[i] = 0.1f;
 
 
-	glWidget->colors[ind_NN] = 1.0f;
-	glWidget->colors[ind_NN + 1] = 0.0f;
+	glWidget->colors[ind_NN] = 0.0f;
+	glWidget->colors[ind_NN + 1] = 1.0f;
 	glWidget->colors[ind_NN + 2] = 0.0f;
 	
-
+	labelCloudBounds->setText("Found NN!");
 }
