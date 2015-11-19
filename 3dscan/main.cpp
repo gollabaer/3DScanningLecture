@@ -5,7 +5,7 @@
 #include <fstream>
 #include "MainApplication.h"
 
-#include <kdTree.h>
+#include <Tree3d.h>
 
 #include <QtWidgets/QApplication>
 #include <QtGui/QGuiApplication>

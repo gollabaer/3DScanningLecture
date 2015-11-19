@@ -6,6 +6,7 @@
 #include <QMatrix4x4>
 #include <qopenglshaderprogram.h>
 #include <qmath.h>
+#include "Point3d.h"
 extern "C" {
 #include "trackball.h"
 }
@@ -14,24 +15,21 @@ struct Camera{
 
 public:
 
-	std::vector<float> init(std::vector<float> &points, float width, float height){
-		float xmin = points[0], xmax = points[0];
-		float ymin = points[1], ymax = points[1];
-		float zmin = points[2], zmax = points[2];
+	std::vector<float> init(std::vector<Point3d> &points, float width, float height){
+		float xmin = points[0].x, xmax = points[0].x;
+		float ymin = points[0].y, ymax = points[0].y;
+		float zmin = points[0].z, zmax = points[0].z;
 
-		for (int i = 0; i < points.size(); i += 3){
-			xmin = (points[i] < xmin) ? points[i] : xmin;
-			xmax = (points[i] > xmax) ? points[i] : xmax;
-		}
-
-		for (int i = 1; i < points.size(); i += 3){
-			ymin = (points[i] < ymin) ? points[i] : ymin;
-			ymax = (points[i] > ymax) ? points[i] : ymax;
-		}
-
-		for (int i = 2; i < points.size(); i += 3){
-			zmin = (points[i] < zmin) ? points[i] : zmin;
-			zmax = (points[i] > zmax) ? points[i] : zmax;
+		for (int i = 0; i < points.size(); i ++){
+			// x-dim
+			xmin = (points[i].x < xmin) ? points[i].x : xmin;
+			xmax = (points[i].x > xmax) ? points[i].x : xmax;
+			// y-dim
+			ymin = (points[i].y < ymin) ? points[i].y : ymin;
+			ymax = (points[i].y > ymax) ? points[i].y : ymax;
+			// z-dim
+			zmin = (points[i].z < zmin) ? points[i].z : zmin;
+			zmax = (points[i].z > zmax) ? points[i].z : zmax;
 		}
 
 		float dist = 2 * (zmax - zmin);

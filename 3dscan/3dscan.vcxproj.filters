@@ -50,9 +50,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_mainglwidget.cpp">
       <Filter>Generierte Dateien\Release</Filter>
     </ClCompile>
-    <ClCompile Include="kdTree.cpp">
-      <Filter>Source Dateien</Filter>
-    </ClCompile>
     <ClCompile Include="trackball.c">
       <Filter>Source Dateien</Filter>
     </ClCompile>
@@ -64,6 +61,12 @@
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_MainApplication.cpp">
       <Filter>Generierte Dateien\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Point3d.cpp">
+      <Filter>Source Dateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree3d.cpp">
+      <Filter>Source Dateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -84,10 +87,13 @@
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h">
       <Filter>Generierte Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="kdTree.h">
+    <ClInclude Include="trackball.h">
       <Filter>Header Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="trackball.h">
+    <ClInclude Include="Point3d.h">
+      <Filter>Header Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree3d.h">
       <Filter>Header Dateien</Filter>
     </ClInclude>
   </ItemGroup>
