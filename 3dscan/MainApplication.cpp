@@ -49,10 +49,6 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	nnqueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
 	glWidget = new MainGLWidget();
-	GLfloat initialVertexAttributes[] = { 0 };
-	glWidget->vertices = initialVertexAttributes;
-	glWidget->colors = initialVertexAttributes;
-	glWidget->count = 0;
 
 	labelCloudBounds = new QLabel("---", this);
 	labelCloudBounds->setMaximumHeight(60);
@@ -88,6 +84,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 
 MainApplication::~MainApplication()
 {
+//delete glWidget;
 }
 
 void MainApplication::loadPoints(){
@@ -104,19 +101,18 @@ void MainApplication::loadPoints(){
 
 	this->points = xyzFileToVec(str.c_str());	
 
-	std::vector<float> pointsToDraw;
-	pointsToDraw.clear();
-	pointsToDraw.resize(points.size() * 3);
+	std::vector<float>* pointsToDraw = new std::vector<float>();
+	pointsToDraw->clear();
 
 	for (int i = 0; i < points.size(); i++)
 	{
-		pointsToDraw[i * 3] = points[i].x;
-		pointsToDraw[i * 3 + 1] = points[i].y;
-		pointsToDraw[i * 3 + 2] = points[i].z;
+		pointsToDraw->push_back(points[i].x);
+		pointsToDraw->push_back(points[i].y);
+		pointsToDraw->push_back(points[i].z);
 	}
 	
-	this->glWidget->colors = new GLfloat[pointsToDraw.size()];
-	for (int i = 0; i < pointsToDraw.size(); i++)
+	this->glWidget->colors = new GLfloat[pointsToDraw->size()];
+	for (int i = 0; i < pointsToDraw->size(); i++)
 		this->glWidget->colors[i] = (1.0f);
 	std::vector<float> bbox = this->glWidget->cam.init(points, 640, 380);
 
@@ -127,8 +123,8 @@ void MainApplication::loadPoints(){
 	std::string ts = sStream.str();
 
 	
-	this->glWidget->vertices = pointsToDraw.data();
-	this->glWidget->count = pointsToDraw.size();
+	this->glWidget->vertices = pointsToDraw->data();
+	this->glWidget->count = pointsToDraw->size();
 
 	labelCloudBounds->setText("Building Tree3d...");
 
@@ -155,7 +151,6 @@ void MainApplication::rangeQuery(){
 
 	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
 	{
-
 		glWidget->colors[*it] = 0.9;
 		glWidget->colors[*it + 1] = 0;
 		glWidget->colors[*it + 2] = 0.2;

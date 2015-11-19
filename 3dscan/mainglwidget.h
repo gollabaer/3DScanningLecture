@@ -149,8 +149,8 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		~MainGLWidget();
 		Camera cam;
 		uint count;
-		GLfloat * vertices;
-		GLfloat * colors;
+		GLfloat* vertices;
+		GLfloat* colors;
 
 	protected:
 		void initializeGL() Q_DECL_OVERRIDE;

@@ -22,13 +22,20 @@ static const char *fragmentShaderSource =
 
 MainGLWidget::MainGLWidget(QWidget *parent)
 	:QOpenGLWidget(parent)
-	,m_program(0)
+	, m_program(0)
 	, oldMousePosition(-1, -1)
+	, vertices(nullptr)
+	, colors(nullptr)
+	, count(0)
 {
 
 }
 
-MainGLWidget::~MainGLWidget(){}
+MainGLWidget::~MainGLWidget()
+{
+	//delete[] vertices;
+	//delete[] colors;
+}
 
 void MainGLWidget::initializeGL(){
 	m_program = new QOpenGLShaderProgram(this);
