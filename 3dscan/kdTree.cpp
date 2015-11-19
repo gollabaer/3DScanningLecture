@@ -40,7 +40,7 @@ kdTree::Node::Node(std::vector<int>* indices, std::vector<float> &points, int de
 {
 	// choose current axis
 	int axis = depth % dim; // 0 = x, 1 = y, 2 = z
-
+	m_axis = axis;
 	// assign parent and intialize children
 	m_Parent = parent;
 	m_LeftChild = NULL;
@@ -156,6 +156,52 @@ float kdTree::Node::getMin()
 std::vector<int> kdTree::Node::getIndices()
 {
 	return *m_Indices;
+}
+
+void kdTree::Node::NearesNeighbour(std::vector<float> queryPoint, float &currentRange,int &index, std::vector<float> &points){
+	
+	float pointAxisValues = queryPoint[m_axis];
+
+	//report nearest neighbour in leaf
+	if (isLeaf()) {
+		std::vector<float> t_vec =  kdTree::indexToVector(m_Indices->at(0), points);
+		float t_dist = kdTree::squaredEuclidianDistance(queryPoint, t_vec);
+		int t_index = m_Indices->at(0);
+
+		//find closest point in node 
+		for (int i = 1; i < m_Indices->size(); i++)
+		{
+			t_vec = indexToVector(m_Indices->at(i), points);
+			float t_t_dist = squaredEuclidianDistance(queryPoint, t_vec);
+			if (t_t_dist < t_dist){
+				t_dist = t_t_dist;
+				t_index = m_Indices->at(i);
+			}
+		}
+		if (currentRange > t_dist){
+			currentRange = t_dist;
+			index = t_index;
+			return;
+		}
+	}
+
+	if (pointAxisValues < m_Median){
+	
+		if (m_LeftChild != NULL)
+			m_LeftChild->NearesNeighbour(queryPoint, currentRange,index, points);
+
+		if (pointAxisValues + currentRange > m_Median && m_RightChild != NULL)
+			m_RightChild->NearesNeighbour(queryPoint, currentRange, index, points);
+	}
+	else{
+		if (m_RightChild != NULL)
+		m_RightChild->NearesNeighbour(queryPoint, currentRange, index, points);
+
+		if (pointAxisValues - currentRange < m_Median && m_LeftChild != NULL)
+			m_LeftChild->NearesNeighbour(queryPoint, currentRange, index, points);
+	}
+	
+
 }
 
 std::vector<int> kdTree::Node::reportPoints(int depth, std::vector<float> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary, int &dim)
@@ -307,19 +353,21 @@ std::vector<int> kdTree::rangeQuery(std::vector<float> p1, std::vector<float> p2
 }
 
 
-std::vector<float> kdTree::indexToVector(int i)
+std::vector<float> kdTree::indexToVector(int i, std::vector<float> &points)
 {
-	return std::vector<float>(this->m_Points.begin() + i,
-		this->m_Points.begin() + i + (m_Dim));
+	return std::vector<float>(points.begin() + i,
+		points.begin() + i + (TREE_DIM));
 }
 
 int kdTree::nearestNeighbor(std::vector<float> p)
 {
 	// location is not always a leaf node and has indices
-	Node* location = this->m_Root->locatePoint(p, this->m_MaxDepth, this->m_Dim);
+	int ind = -1;
 
-	return closestPointFromLocation(location, p);
+	float dist = 1000000000.0f;
 
+	m_Root->NearesNeighbour(p, dist, ind, m_Points);
+	return ind;
 }
 
 int kdTree::closestPointFromLocation(kdTree::Node* location, std::vector<float> p)
@@ -333,12 +381,12 @@ int kdTree::closestPointFromLocation(kdTree::Node* location, std::vector<float> 
 	{
 		std::vector<int> ind_points = location->getIndices();
 
-		std::vector<float> t_vec = indexToVector(ind_points[0]);
+		std::vector<float> t_vec = indexToVector(ind_points[0], m_Points);
 		float t_dist = squaredEuclidianDistance(p, t_vec);
 		int index = ind_points[0];
 
 		for (int i = 1; i < ind_points.size(); i++){
-			t_vec = indexToVector(ind_points[i]);
+			t_vec = indexToVector(ind_points[i],m_Points);
 			float t_t_dist = squaredEuclidianDistance(p, t_vec);
 			if (t_t_dist < t_dist){
 				t_dist = t_t_dist;
@@ -357,14 +405,14 @@ int kdTree::closestPointFromLocation(kdTree::Node* location, std::vector<float> 
 
 		std::vector<int> ind_points_range = rangeQuery(q1, q2);
 
-		t_vec = indexToVector(ind_points_range[0]);
+		t_vec = indexToVector(ind_points_range[0],m_Points);
 		t_dist = squaredEuclidianDistance(p, t_vec);
 		index = ind_points_range[0];
 
 
 		for (int i = 1; i < ind_points_range.size(); i++)
 		{
-			t_vec = indexToVector(ind_points_range[i]);
+			t_vec = indexToVector(ind_points_range[i],m_Points);
 			float t_t_dist = squaredEuclidianDistance(p, t_vec);
 			if (t_t_dist < t_dist){
 				t_dist = t_t_dist;
