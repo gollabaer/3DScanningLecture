@@ -17,6 +17,7 @@ public:
 	std::vector<float> getPoints(); // returns a vector containing all stored points
 	// Functions
 	std::vector<int> rangeQuery(std::vector<float> p1, std::vector<float> p2); // returns the indices of all points inside the box formed by p1 and p2
+	std::vector<int> radiusQuery(std::vector<float> queryPoint, float radius);
 	int nearestNeighbor(std::vector<float> p); // the coordinates of the nearest neighbor
 	static double squaredEuclidianDistance(std::vector<float> &p1, std::vector<float> &p2);
 	static inline std::vector<float> indexToVector(int i, std::vector<float> &points);
@@ -59,8 +60,6 @@ private:
 	int m_MaxDepth;
 	int m_Dim;
 	// Functions
-	
-	
 	int kdTree::closestPointFromLocation(kdTree::Node* location, std::vector<float> p);
 };
 

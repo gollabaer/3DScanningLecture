@@ -47,6 +47,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	QPushButton *rangequeryButton = new QPushButton(tr("Range"));
 	rangequeryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
+	QPushButton *radiusQueryButton = new QPushButton(tr("Radius"));
+	radiusQueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+
 	QPushButton *nnqueryButton = new QPushButton(tr("NN-Query"));
 	nnqueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
@@ -68,11 +71,13 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	connect(quitButton, SIGNAL(clicked()), this, SLOT(quit()));
 	connect(loadButton, SIGNAL(clicked()), this, SLOT(loadPoints()));
 	connect(rangequeryButton, SIGNAL(clicked()), this, SLOT(rangeQuery()));
+	connect(radiusQueryButton, SIGNAL(clicked()), this, SLOT(radiusQuery()));
 	connect(nnqueryButton, SIGNAL(clicked()), this, SLOT(nnQuery()));
 
 	layoutButtons->addWidget(labelCloudBounds);
 	layoutButtons->addWidget(loadButton);
 	layoutButtons->addWidget(rangequeryButton);
+	layoutButtons->addWidget(radiusQueryButton);
 	layoutButtons->addWidget(nnqueryButton);
 	layoutButtons->addWidget(quitButton);
 	
@@ -153,12 +158,40 @@ void MainApplication::rangeQuery(){
 
 	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
 	{
-
 		glWidget->colors[*it] = 0.9;
 		glWidget->colors[*it + 1] = 0;
 		glWidget->colors[*it + 2] = 0.2;
 	}
+}
 
+void MainApplication::radiusQuery(){
+	QString str = QInputDialog::getText(this, "Input point and radius:", "x y z r");
+	if (!(str != NULL && !str.isEmpty()))return;
+	QStringList strList = str.split(" ");
+
+	if (strList.size() != 4) return;
+
+	std::vector<float> queryPoint;
+	float radius = strList.at(3).toFloat();
+
+	queryPoint.push_back(strList.at(0).toFloat());
+	queryPoint.push_back(strList.at(1).toFloat());
+	queryPoint.push_back(strList.at(2).toFloat());
+
+
+
+	std::vector<int> quvec;
+	quvec = _kdTree.radiusQuery(queryPoint, radius);
+
+	for (int i = 0; i < glWidget->count; i++)
+		glWidget->colors[i] = 1;
+
+	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
+	{
+		glWidget->colors[*it] = 0.9;
+		glWidget->colors[*it + 1] = 0;
+		glWidget->colors[*it + 2] = 0.2;
+	}
 }
 
 

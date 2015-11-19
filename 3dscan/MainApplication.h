@@ -26,6 +26,7 @@ private:
 private slots:
 	void loadPoints();
 	void rangeQuery();
+	void radiusQuery();
 	void nnQuery();
 };
 

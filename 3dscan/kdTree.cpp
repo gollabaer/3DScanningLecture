@@ -352,6 +352,31 @@ std::vector<int> kdTree::rangeQuery(std::vector<float> p1, std::vector<float> p2
 	return this->m_Root->reportPoints(this->m_MaxDepth, this->m_Points, lowerBoundary, upperBoundary, this->m_Dim);
 }
 
+std::vector<int> kdTree::radiusQuery(std::vector<float> queryPoint, float radius)
+{
+	std::vector<float> box_min(queryPoint.size());
+	std::vector<float> box_max(queryPoint.size());
+	for (int i = 0; i < queryPoint.size(); ++i)
+	{
+		box_min[i] = queryPoint[i] - radius;
+		box_max[i] = queryPoint[i] + radius;
+	}
+
+	// TODO use lists instead of vectors to easaly filter indexlists
+	std::vector<int> indices_queryBox = rangeQuery(box_min, box_max);
+	std::vector<int> indices_querySphere;
+	for (int i = 0; i < indices_queryBox.size(); ++i)
+	{
+		float squaredDistToCenter = squaredEuclidianDistance(indexToVector(indices_queryBox[i], m_Points), queryPoint);
+		if (squaredDistToCenter <= radius*radius)
+		{
+			indices_querySphere.push_back(indices_queryBox[i]);
+		}
+	}
+	return indices_querySphere;
+}
+
+
 
 std::vector<float> kdTree::indexToVector(int i, std::vector<float> &points)
 {
