@@ -147,13 +147,13 @@ void MainApplication::rangeQuery(){
 	quvec = _Tree3d.rangeQuery(v1, v2);
 
 	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 1;
+		glWidget->colors[i] = 0.5f;
 
 	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
 	{
-		glWidget->colors[*it] = 0.9;
-		glWidget->colors[*it + 1] = 0;
-		glWidget->colors[*it + 2] = 0.2;
+		glWidget->colors[*it * 3] = 0.9f;
+		glWidget->colors[*it * 3 + 1] = 0.0f;
+		glWidget->colors[*it * 3 + 2] = 0.2f;
 	}
 
 }
@@ -177,9 +177,9 @@ void MainApplication::nnQuery()
 		glWidget->colors[i] = 0.1f;
 
 
-	glWidget->colors[ind_NN] = 0.0f;
-	glWidget->colors[ind_NN + 1] = 1.0f;
-	glWidget->colors[ind_NN + 2] = 0.0f;
+	glWidget->colors[ind_NN * 3] = 0.0f;
+	glWidget->colors[ind_NN * 3 + 1] = 1.0f;
+	glWidget->colors[ind_NN * 3 + 2] = 0.0f;
 	
 	labelCloudBounds->setText("Found NN!");
 }
