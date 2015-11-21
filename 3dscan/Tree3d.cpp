@@ -9,7 +9,7 @@ Tree3d::Tree3d()
 {
 }
 
-Tree3d::Tree3d(std::vector<Point3d> points, int maxDepth)
+Tree3d::Tree3d(std::vector<Point3d> &points, int maxDepth)
 {
 	// assign member variables 
 	m_MaxDepth = maxDepth;
@@ -40,7 +40,7 @@ Tree3d::Node::Node()
 Tree3d::Node::Node(std::vector<int>* indices, std::vector<Point3d> &points, int depth, Node* parent)
 {
 	// choose current axis
-	int axis = depth % DIM; // 0 = x, 1 = y, 2 = z
+	this->m_Axis = depth % DIM; // 0 = x, 1 = y, 2 = z
 
 	// assign parent and intialize children
 	m_Parent = parent;
@@ -49,7 +49,7 @@ Tree3d::Node::Node(std::vector<int>* indices, std::vector<Point3d> &points, int 
 	m_Indices = NULL;
 
 	// sort by axis
-	std::sort(begin(*indices), end(*indices), [&](size_t a, size_t b) { return points[a][axis] < points[b][axis]; });
+	std::sort(begin(*indices), end(*indices), [&](size_t a, size_t b) { return points[a][m_Axis] < points[b][m_Axis]; });
 
 	// choose median
 	int medianIndex = 0;
@@ -61,11 +61,11 @@ Tree3d::Node::Node(std::vector<int>* indices, std::vector<Point3d> &points, int 
 	{
 		medianIndex = indices->size() / 2;
 	}
-	m_Median = points[indices->operator[](medianIndex)][axis];
+	m_Median = points[indices->operator[](medianIndex)][m_Axis];
 
 	// set Min and Max
-	m_Min = points[indices->operator[](0)][axis];
-	m_Max = points[indices->operator[]((indices->size() - 1))][axis];
+	m_Min = points[indices->operator[](0)][m_Axis];
+	m_Max = points[indices->operator[]((indices->size() - 1))][m_Axis];
 
 	if (depth <= 1 || indices->size() <= 1)
 	{
@@ -86,7 +86,7 @@ Tree3d::Node::Node(std::vector<int>* indices, std::vector<Point3d> &points, int 
 		// find trueMedianIndex
 		for (int index = medianIndex; index <= indices->size() - 1; ++index)
 		{
-			if (points[indices->operator[](index)][axis] > m_Median)
+			if (points[indices->operator[](index)][m_Axis] > m_Median)
 			{
 				// as soon as the point larger than the median is found, the predecessor is defined as the trueMedianIndex
 				trueMedianIndex = index - 1;
@@ -156,20 +156,21 @@ float Tree3d::Node::getMin()
 
 std::vector<int> Tree3d::Node::getIndices()
 {
-	return *m_Indices;
+	if (m_Indices != NULL)
+		return *m_Indices;
+	else
+		return std::vector<int> ();
+
 }
 
-std::vector<int> Tree3d::Node::reportPoints(int depth, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary)
+std::vector<int> Tree3d::Node::rangeQuery(int depth, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary)
 {
 	// TODO: check that b ">" a !this is already asserted in the range query function!
 	std::vector<int> result;
 	result.clear();
 
-	// choose current axis
-	int axis = depth % DIM; // 0 = x, 1 = y, 2 = z
-
 	// if range query is out of bounds, return empty vector
-	if (lowerBoundary[axis] > this->m_Max || upperBoundary[axis] < this->m_Min)
+	if (lowerBoundary[m_Axis] > this->m_Max || upperBoundary[m_Axis] < this->m_Min)
 	{
 		return result;
 	}
@@ -179,13 +180,13 @@ std::vector<int> Tree3d::Node::reportPoints(int depth, std::vector<Point3d> &poi
 	// check right child and add points to result
 	if (this->m_RightChild != NULL)
 	{
-		result = this->m_RightChild->reportPoints(depth - 1, points, lowerBoundary, upperBoundary);
+		result = this->m_RightChild->rangeQuery(depth - 1, points, lowerBoundary, upperBoundary);
 
 	}
 	// check left child and add points to result
 	if (this->m_LeftChild != NULL)
 	{
-		std::vector<int> resultLeft = this->m_LeftChild->reportPoints(depth - 1, points, lowerBoundary, upperBoundary);
+		std::vector<int> resultLeft = this->m_LeftChild->rangeQuery(depth - 1, points, lowerBoundary, upperBoundary);
 		// Combine results of left and right child
 		result.reserve(result.size() + resultLeft.size()); // preallocate memory
 		result.insert(result.end(), resultLeft.begin(), resultLeft.end());
@@ -197,7 +198,7 @@ std::vector<int> Tree3d::Node::reportPoints(int depth, std::vector<Point3d> &poi
 		for (std::vector<int>::iterator it = this->m_Indices->begin(); it != this->m_Indices->end(); ++it)
 		{
 			// if point fits bounding box in every DIMension
-			if (testPointInRange(*it, axis, points, lowerBoundary, upperBoundary) == true)
+			if (pointIsInRange(*it, points, lowerBoundary, upperBoundary))
 			{
 				result.push_back(*it);
 			}
@@ -207,7 +208,7 @@ std::vector<int> Tree3d::Node::reportPoints(int depth, std::vector<Point3d> &poi
 	return result;
 }
 
-bool Tree3d::Node::testPointInRange(int index, int axis, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary)
+bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary)
 {
 	bool pointInRange = true;
 	// check for each DIMension if point is inbetween lower and upper border
@@ -229,45 +230,55 @@ bool Tree3d::Node::testPointInRange(int index, int axis, std::vector<Point3d> &p
 	return pointInRange;
 }
 
-
-Tree3d::Node* Tree3d::Node::locatePoint(Point3d p, int depth)
-{
-	// choose current axis
-	int axis = depth % DIM; // 0 = x, 1 = y, 2 = z
-
-	if (p[axis] <= this->m_Median)
-	{
-		if (this->m_LeftChild != NULL)
-		{
-			// if axis coordinate is smaller/equal than median locate point in left child
-			return this->m_LeftChild->locatePoint(p, depth - 1);
-		}
-		else
-		{
-			// if left child is NULL point location is this node
-			return this;
-		}
-	}
-	else
-	{
-		if (this->m_RightChild != NULL)
-		{
-			// if axis coordinate is bigger than median locate point in right child
-			return this->m_RightChild->locatePoint(p, depth - 1);
-		}
-		else
-		{
-			// if right child is NULL point location is this node
-			return this;
-		}
-	}
-
-}
-
 bool Tree3d::Node::isLeaf()
 {
 	if (this->m_Indices != NULL) return true;
 	else return false;
+}
+
+
+void Tree3d::Node::nearestNeighbour(Point3d queryPoint, float &currentRange, int &index, std::vector<Point3d> &points){
+
+	float pointm_AxisValues = queryPoint[m_Axis];
+
+	//report nearest neighbour in leaf
+	if (isLeaf()) {
+
+		float t_dist =  sqDistance3d(queryPoint, points[m_Indices->operator[](0)]);
+		int t_index = m_Indices->operator[](0);
+
+		//find closest point in node 
+		for (int i = 1; i < m_Indices->size(); i++)
+		{
+			float t_t_dist = sqDistance3d(queryPoint, points[m_Indices->operator[](i)]);
+			if (t_t_dist < t_dist){
+				t_dist = t_t_dist;
+				t_index = m_Indices->operator[](i);
+			}
+		}
+		if (currentRange > t_dist){
+			currentRange = t_dist;
+			index = t_index;
+			return;
+		}
+	}
+
+	if (pointm_AxisValues < m_Median)
+	{
+		if (m_LeftChild != NULL)
+			m_LeftChild->nearestNeighbour(queryPoint, currentRange, index, points);
+
+		if (pointm_AxisValues + currentRange > m_Median && m_RightChild != NULL)
+			m_RightChild->nearestNeighbour(queryPoint, currentRange, index, points);
+	}
+	else
+	{
+		if (m_RightChild != NULL)
+			m_RightChild->nearestNeighbour(queryPoint, currentRange, index, points);
+
+		if (pointm_AxisValues - currentRange < m_Median && m_LeftChild != NULL)
+			m_LeftChild->nearestNeighbour(queryPoint, currentRange, index, points);
+	}
 }
 
 
@@ -305,75 +316,18 @@ std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
 		}
 	}
 	// recursivly report points
-	return this->m_Root->reportPoints(this->m_MaxDepth, this->m_Points, lowerBoundary, upperBoundary);
+	return this->m_Root->rangeQuery(this->m_MaxDepth, this->m_Points, lowerBoundary, upperBoundary);
 }
 
-
-Point3d Tree3d::indexToPoint(int i)
-{
-	return *(this->m_Points.begin() + i);
-}
-
-int Tree3d::nearestNeighbor(Point3d p)
+int Tree3d::nearestNeighbour(Point3d p)
 {
 	// location is not always a leaf node and has indices
-	Node* location = this->m_Root->locatePoint(p, this->m_MaxDepth);
+	int ind = -1;
 
-	return closestPointFromLocation(location, p);
+	float dist = 1000000000.0f;
 
+	m_Root->nearestNeighbour(p, dist, ind, m_Points);
+	return ind;
 }
-
-int Tree3d::closestPointFromLocation(Tree3d::Node* location, Point3d p)
-{
-	// location is not a leaf node if the value is bigger than the median, but no right child exitsts
-	if (!location->isLeaf())
-	{
-		return closestPointFromLocation(location->getLeftChild(), p);
-	}
-	else
-	{
-		std::vector<int> ind_points = location->getIndices();
-
-		Point3d t_point = indexToPoint(ind_points[0]);
-		double t_dist = sqDistance3d(p, t_point);
-		int index = ind_points[0];
-
-		for (int i = 1; i < ind_points.size(); i++){
-			t_point = indexToPoint(ind_points[i]);
-
-			
-			double t_t_dist = sqDistance3d(p, t_point);
-			if (t_t_dist < t_dist){
-				t_dist = t_t_dist;
-				index = ind_points[i];
-			}
-		}
-
-		t_dist = std::sqrt(t_dist);
-		Point3d d = Point3d(t_dist, t_dist, t_dist);
-		Point3d q1 = p + d;
-		Point3d q2 = p - d;
-
-		std::vector<int> ind_points_range = rangeQuery(q1, q2);
-
-		t_point = indexToPoint(ind_points_range[0]);
-		t_dist = sqDistance3d(p, t_point);
-		index = ind_points_range[0];
-
-
-		for (int i = 1; i < ind_points_range.size(); i++)
-		{
-			t_point = indexToPoint(ind_points_range[i]);
-			float t_t_dist = sqDistance3d(p, t_point);
-			if (t_t_dist < t_dist){
-				t_dist = t_t_dist;
-				index = ind_points_range[i];
-			}
-		}
-
-		return index;
-	}
-}
-
 
 

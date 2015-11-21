@@ -171,7 +171,7 @@ void MainApplication::nnQuery()
 	
 	Point3d v1 = Point3d(strList.at(0).toFloat(), strList.at(1).toFloat(), strList.at(2).toFloat());
 
-	int ind_NN = _Tree3d.nearestNeighbor(v1);
+	int ind_NN = _Tree3d.nearestNeighbour(v1);
 	
 	for (int i = 0; i < glWidget->count; i++)
 		glWidget->colors[i] = 0.1f;
