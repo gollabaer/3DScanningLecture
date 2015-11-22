@@ -22,8 +22,8 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		~MainGLWidget();
 		Camera cam;
 		uint count;
-		GLfloat* vertices;
 		GLfloat* colors;
+		std::vector<Point3d>* m_vertices;
 
 	protected:
 		void initializeGL() Q_DECL_OVERRIDE;

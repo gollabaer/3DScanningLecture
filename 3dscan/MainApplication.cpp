@@ -97,22 +97,13 @@ void MainApplication::loadPoints(){
 		return;
 	}
 
+	// read points from file
 	std::string str = fstr.toStdString();
-
 	this->points = xyzFileToVec(str.c_str());	
-
-	std::vector<float>* pointsToDraw = new std::vector<float>();
-	pointsToDraw->clear();
-
-	for (int i = 0; i < points.size(); i++)
-	{
-		pointsToDraw->push_back(points[i].x);
-		pointsToDraw->push_back(points[i].y);
-		pointsToDraw->push_back(points[i].z);
-	}
 	
-	this->glWidget->colors = new GLfloat[pointsToDraw->size()];
-	for (int i = 0; i < pointsToDraw->size(); i++)
+	// set up color array and bounding box
+	this->glWidget->colors = new GLfloat[points.size() * 3];
+	for (int i = 0; i < points.size() * 3; i++)
 		this->glWidget->colors[i] = (1.0f);
 	std::vector<float> bbox = this->glWidget->cam.init(points, 640, 380);
 
@@ -120,17 +111,17 @@ void MainApplication::loadPoints(){
 	sStream.precision(2);
 	sStream << bbox[0] << ":" << bbox[18] << "\n" << bbox[1] << ":" << bbox[19] << "\n" << bbox[2] << ":" << bbox[20];
 
-	std::string ts = sStream.str();
+	std::string boundingBoxDimensions = sStream.str();
 
-	
-	this->glWidget->vertices = pointsToDraw->data();
-	this->glWidget->count = pointsToDraw->size();
+	// hand pointers to vertex data to glWidget
+	this->glWidget->m_vertices = &(this->points);
+	this->glWidget->count = points.size() * 3;
 
+	// build up the kd-Tree
 	labelCloudBounds->setText("Building Tree3d...");
-
 	this->_Tree3d = Tree3d(points, 100);
 
-	labelCloudBounds->setText(QString(ts.c_str()));
+	labelCloudBounds->setText(QString(boundingBoxDimensions.c_str()));
 }
 
 void MainApplication::rangeQuery(){

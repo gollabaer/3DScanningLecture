@@ -23,8 +23,9 @@ static const char *fragmentShaderSource =
 MainGLWidget::MainGLWidget(QWidget *parent)
 	:QOpenGLWidget(parent)
 	, m_program(0)
+	, cam(Camera())
 	, oldMousePosition(-1, -1)
-	, vertices(nullptr)
+	, m_vertices(nullptr)
 	, colors(nullptr)
 	, count(0)
 {
@@ -33,7 +34,6 @@ MainGLWidget::MainGLWidget(QWidget *parent)
 
 MainGLWidget::~MainGLWidget()
 {
-	//delete[] vertices;
 	//delete[] colors;
 }
 
@@ -65,7 +65,7 @@ void MainGLWidget::paintGL() {
 	m_program->setUniformValue(m_matrixUniform, matrix);
 
 
-	glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, vertices);
+	glVertexAttribPointer(m_posAttr, 3, GL_DOUBLE, GL_FALSE, sizeof(Point3d), &(m_vertices->operator[](0)));
 	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
 	glEnableVertexAttribArray(0);
