@@ -112,6 +112,16 @@ void MainGLWidget::mouseMoveEvent(QMouseEvent *event) {
 		oldMousePosition.setY(event->y());
 	}
 	update();
+	event->accept();
+}
+
+void MainGLWidget::wheelEvent(QWheelEvent *event) {
+	QPoint angle = event->angleDelta();
+	int vertical_angle = angle.y() / 8;
+	
+	cam.incVFov(vertical_angle / -3);
+	update();
+	event->accept();
 }
 
 	
