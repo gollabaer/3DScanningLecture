@@ -144,12 +144,12 @@ int Tree3d::Node::getMedian()
 	return m_Median;
 }
 
-float Tree3d::Node::getMax()
+double Tree3d::Node::getMax()
 {
 	return m_Max;
 }
 
-float Tree3d::Node::getMin()
+double Tree3d::Node::getMin()
 {
 	return m_Min;
 }
@@ -236,7 +236,7 @@ bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, Point
 	return pointInRange;
 }
 
-std::vector<int> Tree3d::Node::radiusQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary, Point3d queryPoint, float radius)
+std::vector<int> Tree3d::Node::radiusQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary, Point3d &queryPoint, double &radius)
 {
 	// b ">=" a is already asserted in the radius query function!
 	std::vector<int> result;
@@ -282,20 +282,20 @@ std::vector<int> Tree3d::Node::radiusQuery(std::vector<Point3d> &points, Point3d
 	return result;
 }
 
-void Tree3d::Node::nearestNeighbour(Point3d queryPoint, float &currentRange, int &index, std::vector<Point3d> &points){
+void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentRange, int &index, std::vector<Point3d> &points){
 
-	float pointm_AxisValues = queryPoint[m_Axis];
+	double pointm_AxisValues = queryPoint[m_Axis];
 
 	//report nearest neighbour in leaf
 	if (isLeaf()) {
 
-		float t_dist =  sqDistance3d(queryPoint, points[m_Indices->operator[](0)]);
+		double t_dist =  sqDistance3d(queryPoint, points[m_Indices->operator[](0)]);
 		int t_index = m_Indices->operator[](0);
 
 		//find closest point in node 
 		for (int i = 1; i < m_Indices->size(); i++)
 		{
-			float t_t_dist = sqDistance3d(queryPoint, points[m_Indices->operator[](i)]);
+			double t_t_dist = sqDistance3d(queryPoint, points[m_Indices->operator[](i)]);
 			if (t_t_dist < t_dist){
 				t_dist = t_t_dist;
 				t_index = m_Indices->operator[](i);
@@ -363,7 +363,7 @@ std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
 	return this->m_Root->rangeQuery(this->m_Points, lowerBoundary, upperBoundary);
 }
 
-std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, float radius)
+std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, double radius)
 {
 	Point3d lowerBoundary = queryPoint - Point3d(radius, radius, radius);
 	Point3d upperBoundary = queryPoint + Point3d(radius, radius, radius);
@@ -376,7 +376,7 @@ int Tree3d::nearestNeighbour(Point3d p)
 	// location is not always a leaf node and has indices
 	int ind = -1;
 
-	float dist = 1000000000.0f;
+	double dist = 1000000000.0f;
 
 	m_Root->nearestNeighbour(p, dist, ind, m_Points);
 	return ind;

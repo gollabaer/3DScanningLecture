@@ -143,7 +143,7 @@ void MainApplication::rangeQuery(){
 	quvec = _Tree3d.rangeQuery(v1, v2);
 
 	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 0.5f;
+		glWidget->colors[i] = 0.3f;
 
 	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
 	{
@@ -167,7 +167,7 @@ void MainApplication::radiusQuery(){
 	quvec = _Tree3d.radiusQuery(queryPoint, radius);
 
 	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 1;
+		glWidget->colors[i] = 0.3;
 
 	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
 	{
@@ -193,7 +193,7 @@ void MainApplication::nnQuery()
 	int ind_NN = _Tree3d.nearestNeighbour(v1);
 	
 	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 0.1f;
+		glWidget->colors[i] = 0.3f;
 
 
 	glWidget->colors[ind_NN * 3] = 0.0f;
