@@ -38,9 +38,10 @@ private:
 		std::vector<int> getIndices();
 		bool isLeaf();
 		// Functions
-		std::vector<int> rangeQuery(int depth, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary); // recursively reports points in the subree of the node inbetween the lower and upper boundary
-		bool inline pointIsInRange(int index, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary); // test if the point defined by index is located inbetween the lower and upper boundary in every DIMension
+		std::vector<int> rangeQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary); // recursively reports points in the subree of the node inbetween the lower and upper boundary
+		bool inline pointIsInRange(int index, std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary); // test if the point defined by index is located inbetween the lower and upper boundary in every DIMension
 		void nearestNeighbour(Point3d queryPoint, float &currentRange, int &index, std::vector<Point3d> &points);
+		std::vector<int> radiusQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary, Point3d queryPoint, float radius);
 	private:
 		// Member Variables
 		Node* m_Parent; // Parent Node

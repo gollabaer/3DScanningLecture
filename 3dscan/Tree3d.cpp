@@ -163,9 +163,15 @@ std::vector<int> Tree3d::Node::getIndices()
 
 }
 
-std::vector<int> Tree3d::Node::rangeQuery(int depth, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary)
+bool Tree3d::Node::isLeaf()
 {
-	// TODO: check that b ">" a !this is already asserted in the range query function!
+	if (this->m_Indices != NULL) return true;
+	else return false;
+}
+
+std::vector<int> Tree3d::Node::rangeQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary)
+{
+	// b ">=" a is already asserted in the range query function!
 	std::vector<int> result;
 	result.clear();
 
@@ -180,13 +186,13 @@ std::vector<int> Tree3d::Node::rangeQuery(int depth, std::vector<Point3d> &point
 	// check right child and add points to result
 	if (this->m_RightChild != NULL)
 	{
-		result = this->m_RightChild->rangeQuery(depth - 1, points, lowerBoundary, upperBoundary);
+		result = this->m_RightChild->rangeQuery(points, lowerBoundary, upperBoundary);
 
 	}
 	// check left child and add points to result
 	if (this->m_LeftChild != NULL)
 	{
-		std::vector<int> resultLeft = this->m_LeftChild->rangeQuery(depth - 1, points, lowerBoundary, upperBoundary);
+		std::vector<int> resultLeft = this->m_LeftChild->rangeQuery(points, lowerBoundary, upperBoundary);
 		// Combine results of left and right child
 		result.reserve(result.size() + resultLeft.size()); // preallocate memory
 		result.insert(result.end(), resultLeft.begin(), resultLeft.end());
@@ -208,26 +214,7 @@ std::vector<int> Tree3d::Node::rangeQuery(int depth, std::vector<Point3d> &point
 	return result;
 }
 
-std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, float radius)
-{
-	Point3d box_min = queryPoint - Point3d(radius, radius, radius);
-	Point3d box_max = queryPoint + Point3d(radius, radius, radius);
-
-	// TODO use lists instead of vectors to easaly filter indexlists
-	std::vector<int> indices_queryBox = rangeQuery(box_min, box_max);
-	std::vector<int> indices_querySphere;
-	for (int i = 0; i < indices_queryBox.size(); ++i)
-	{
-		float squaredDistToCenter = sqDistance3d(m_Points[indices_queryBox[i]], queryPoint);
-		if (squaredDistToCenter <= radius*radius)
-		{
-			indices_querySphere.push_back(indices_queryBox[i]);
-		}
-	}
-	return indices_querySphere;
-}
-
-bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary)
+bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary)
 {
 	bool pointInRange = true;
 	// check for each DIMension if point is inbetween lower and upper border
@@ -249,12 +236,51 @@ bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, std::
 	return pointInRange;
 }
 
-bool Tree3d::Node::isLeaf()
+std::vector<int> Tree3d::Node::radiusQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary, Point3d queryPoint, float radius)
 {
-	if (this->m_Indices != NULL) return true;
-	else return false;
-}
+	// b ">=" a is already asserted in the radius query function!
+	std::vector<int> result;
+	result.clear();
 
+	// if radius query is out of bounds, return empty vector
+	if (lowerBoundary[m_Axis] > this->m_Max || upperBoundary[m_Axis] < this->m_Min)
+	{
+		return result;
+	}
+
+	// radius queries a,b with min <= a <= median <b <= max
+
+	// check right child and add points to result
+	if (this->m_RightChild != NULL)
+	{
+		result = this->m_RightChild->radiusQuery(points, lowerBoundary, upperBoundary, queryPoint, radius);
+
+	}
+	// check left child and add points to result
+	if (this->m_LeftChild != NULL)
+	{
+		std::vector<int> resultLeft = this->m_LeftChild->radiusQuery(points, lowerBoundary, upperBoundary, queryPoint, radius);
+		// Combine results of left and right child
+		result.reserve(result.size() + resultLeft.size()); // preallocate memory
+		result.insert(result.end(), resultLeft.begin(), resultLeft.end());
+	}
+	// if the left child is NULL the node has to be a leaf, so traverse points and return fitting ones
+	else
+	{
+		// traverse (sorted) indices from front to back until value is bigger than median
+		for (std::vector<int>::iterator it = this->m_Indices->begin(); it != this->m_Indices->end(); ++it)
+		{
+
+			// if point is in radius distance from query point
+			if (sqDistance3d(points[*it], queryPoint) <= radius*radius)
+			{
+				result.push_back(*it);
+			}
+		}
+	}
+	// return Indexlist of points in query range
+	return result;
+}
 
 void Tree3d::Node::nearestNeighbour(Point3d queryPoint, float &currentRange, int &index, std::vector<Point3d> &points){
 
@@ -318,9 +344,8 @@ std::vector<Point3d> Tree3d::getPoints()
 std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
 {
 	// assign lower and upper boundary of range query for each DIMension (0,1,2,...)
-	std::vector<float> lowerBoundary, upperBoundary;
-	lowerBoundary.clear(); lowerBoundary.resize(DIM);
-	upperBoundary.clear(); upperBoundary.resize(DIM);
+	Point3d lowerBoundary, upperBoundary;
+
 	for (int iter = 0; iter < DIM; ++iter)
 	{
 		if (p1[iter] > p2[iter])
@@ -335,7 +360,15 @@ std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
 		}
 	}
 	// recursivly report points
-	return this->m_Root->rangeQuery(this->m_MaxDepth, this->m_Points, lowerBoundary, upperBoundary);
+	return this->m_Root->rangeQuery(this->m_Points, lowerBoundary, upperBoundary);
+}
+
+std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, float radius)
+{
+	Point3d lowerBoundary = queryPoint - Point3d(radius, radius, radius);
+	Point3d upperBoundary = queryPoint + Point3d(radius, radius, radius);
+
+	return this->m_Root->radiusQuery(this->m_Points, lowerBoundary, upperBoundary, queryPoint, radius);
 }
 
 int Tree3d::nearestNeighbour(Point3d p)
