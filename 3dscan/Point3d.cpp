@@ -31,7 +31,7 @@ Point3d Point3d::operator * (double scalar) const
 }
 
 // acces element by index, 0,1,2
-double Point3d::operator [] (int index) const
+const double &Point3d::operator [] (int index) const
 {
 	switch (index)
 	{
@@ -47,7 +47,7 @@ double Point3d::operator [] (int index) const
 }
 
 // acces element by index, 0,1,2
-double Point3d::operator [] (int index)
+double &Point3d::operator [] (int index)
 {
 	switch (index)
 	{
