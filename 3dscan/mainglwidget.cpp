@@ -22,13 +22,20 @@ static const char *fragmentShaderSource =
 
 MainGLWidget::MainGLWidget(QWidget *parent)
 	:QOpenGLWidget(parent)
-	,m_program(0)
+	, m_program(0)
+	, cam(Camera())
 	, oldMousePosition(-1, -1)
+	, m_vertices(nullptr)
+	, colors(nullptr)
+	, count(0)
 {
 
 }
 
-MainGLWidget::~MainGLWidget(){}
+MainGLWidget::~MainGLWidget()
+{
+	//delete[] colors;
+}
 
 void MainGLWidget::initializeGL(){
 	m_program = new QOpenGLShaderProgram(this);
@@ -58,7 +65,7 @@ void MainGLWidget::paintGL() {
 	m_program->setUniformValue(m_matrixUniform, matrix);
 
 
-	glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, vertices);
+	glVertexAttribPointer(m_posAttr, 3, GL_DOUBLE, GL_FALSE, sizeof(Point3d), &(m_vertices->operator[](0)));
 	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
 	glEnableVertexAttribArray(0);
@@ -105,6 +112,16 @@ void MainGLWidget::mouseMoveEvent(QMouseEvent *event) {
 		oldMousePosition.setY(event->y());
 	}
 	update();
+	event->accept();
+}
+
+void MainGLWidget::wheelEvent(QWheelEvent *event) {
+	QPoint angle = event->angleDelta();
+	int vertical_angle = angle.y() / 8;
+	
+	cam.incVFov(vertical_angle / -3);
+	update();
+	event->accept();
 }
 
 	

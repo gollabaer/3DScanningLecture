@@ -1,6 +1,7 @@
 #include <QWidget>
 #include <qmath.h>
-#include "kdTree.h"
+#include "Tree3d.h"
+#include "Point3d.h"
 #include <vector>
 #include "mainglwidget.h"
 #include <qlabel.h>
@@ -17,8 +18,8 @@ public:
 	~MainApplication();
 
 private:
-	kdTree _kdTree;
-	std::vector<float> points;
+	Tree3d _Tree3d;
+	std::vector<Point3d> points;
 	MainGLWidget * glWidget;
 	QLabel* labelCloudBounds;
 	

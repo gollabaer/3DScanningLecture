@@ -11,10 +11,10 @@
 #include <fstream>
 #include <sstream>
 
-std::vector<float> xyzFileToVec(std::string source){
+std::vector<Point3d> xyzFileToVec(std::string source){
 
 
-	std::vector<float> vec;
+	std::vector<Point3d> vec;
 	vec.reserve(3000000);
 	std::fstream fs;
 	fs.open(source.c_str(), std::ios::in);
@@ -26,9 +26,7 @@ std::vector<float> xyzFileToVec(std::string source){
 		float x, y, z;
 		in >> x >> y >> z;
 
-		vec.push_back(x);
-		vec.push_back(y);
-		vec.push_back(z);
+		vec.push_back(Point3d(x,y,z));
 		c++;
 	}
 
@@ -54,10 +52,6 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	nnqueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
 	glWidget = new MainGLWidget();
-	GLfloat initialVertexAttributes[] = { 0 };
-	glWidget->vertices = initialVertexAttributes;
-	glWidget->colors = initialVertexAttributes;
-	glWidget->count = 0;
 
 	labelCloudBounds = new QLabel("---", this);
 	labelCloudBounds->setMaximumHeight(60);
@@ -95,6 +89,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 
 MainApplication::~MainApplication()
 {
+//delete glWidget;
 }
 
 void MainApplication::loadPoints(){
@@ -107,13 +102,13 @@ void MainApplication::loadPoints(){
 		return;
 	}
 
+	// read points from file
 	std::string str = fstr.toStdString();
-
-	this->points = xyzFileToVec(str.c_str());
+	this->points = xyzFileToVec(str.c_str());	
 	
-	
-	this->glWidget->colors = new GLfloat[points.size()];
-	for (int i = 0; i < points.size(); i++)
+	// set up color array and bounding box
+	this->glWidget->colors = new GLfloat[points.size() * 3];
+	for (int i = 0; i < points.size() * 3; i++)
 		this->glWidget->colors[i] = (1.0f);
 	std::vector<float> bbox = this->glWidget->cam.init(points, 640, 380);
 
@@ -121,16 +116,17 @@ void MainApplication::loadPoints(){
 	sStream.precision(2);
 	sStream << bbox[0] << ":" << bbox[18] << "\n" << bbox[1] << ":" << bbox[19] << "\n" << bbox[2] << ":" << bbox[20];
 
-	std::string ts = sStream.str();
-	
-	this->glWidget->vertices = points.data();
-	this->glWidget->count = points.size();
+	std::string boundingBoxDimensions = sStream.str();
 
-	labelCloudBounds->setText("Building kdTree...");
+	// hand pointers to vertex data to glWidget
+	this->glWidget->m_vertices = &(this->points);
+	this->glWidget->count = points.size() * 3;
 
-	this->_kdTree = kdTree(points, 100, 3);
+	// build up the kd-Tree
+	labelCloudBounds->setText("Building Tree3d...");
+	this->_Tree3d = Tree3d(points, 100);
 
-	labelCloudBounds->setText(QString(ts.c_str()));
+	labelCloudBounds->setText(QString(boundingBoxDimensions.c_str()));
 }
 
 void MainApplication::rangeQuery(){
@@ -140,27 +136,20 @@ void MainApplication::rangeQuery(){
 
 	if (strList.size() != 6) return;
 
-	std::vector<float> v1 ,v2;
-	
-	v1.push_back(strList.at(0).toFloat());
-	v1.push_back(strList.at(1).toFloat());
-	v1.push_back(strList.at(2).toFloat());
-	
-	v2.push_back(strList.at(3).toFloat());
-	v2.push_back(strList.at(4).toFloat());
-	v2.push_back(strList.at(5).toFloat());
+	Point3d v1 = Point3d(strList.at(0).toFloat(), strList.at(1).toFloat(), strList.at(2).toFloat());
+	Point3d	v2 = Point3d(strList.at(3).toFloat(), strList.at(4).toFloat(), strList.at(5).toFloat());
 
 	std::vector<int> quvec;
-	quvec = _kdTree.rangeQuery(v1, v2);
+	quvec = _Tree3d.rangeQuery(v1, v2);
 
 	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 1;
+		glWidget->colors[i] = 0.5f;
 
 	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
 	{
-		glWidget->colors[*it] = 0.9;
-		glWidget->colors[*it + 1] = 0;
-		glWidget->colors[*it + 2] = 0.2;
+		glWidget->colors[*it * 3] = 0.9;
+		glWidget->colors[*it * 3 + 1] = 0;
+		glWidget->colors[*it * 3 + 2] = 0.2;
 	}
 }
 
@@ -171,26 +160,20 @@ void MainApplication::radiusQuery(){
 
 	if (strList.size() != 4) return;
 
-	std::vector<float> queryPoint;
+	Point3d queryPoint = Point3d(strList.at(0).toFloat(), strList.at(1).toFloat(), strList.at(2).toFloat());
 	float radius = strList.at(3).toFloat();
 
-	queryPoint.push_back(strList.at(0).toFloat());
-	queryPoint.push_back(strList.at(1).toFloat());
-	queryPoint.push_back(strList.at(2).toFloat());
-
-
-
 	std::vector<int> quvec;
-	quvec = _kdTree.radiusQuery(queryPoint, radius);
+	quvec = _Tree3d.radiusQuery(queryPoint, radius);
 
 	for (int i = 0; i < glWidget->count; i++)
 		glWidget->colors[i] = 1;
 
 	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
 	{
-		glWidget->colors[*it] = 0.9;
-		glWidget->colors[*it + 1] = 0;
-		glWidget->colors[*it + 2] = 0.2;
+		glWidget->colors[*it * 3] = 0.9;
+		glWidget->colors[*it * 3 + 1] = 0;
+		glWidget->colors[*it * 3 + 2] = 0.2;
 	}
 }
 
@@ -204,21 +187,18 @@ void MainApplication::nnQuery()
 	if (strList.size() != 3) return;
 	
 	labelCloudBounds->setText("Locating NN..");
-	std::vector<float> v1;
+	
+	Point3d v1 = Point3d(strList.at(0).toFloat(), strList.at(1).toFloat(), strList.at(2).toFloat());
 
-	v1.push_back(strList.at(0).toFloat());
-	v1.push_back(strList.at(1).toFloat());
-	v1.push_back(strList.at(2).toFloat());
-
-	int ind_NN = _kdTree.nearestNeighbor(v1);
+	int ind_NN = _Tree3d.nearestNeighbour(v1);
 	
 	for (int i = 0; i < glWidget->count; i++)
 		glWidget->colors[i] = 0.1f;
 
 
-	glWidget->colors[ind_NN] = 0.0f;
-	glWidget->colors[ind_NN + 1] = 1.0f;
-	glWidget->colors[ind_NN + 2] = 0.0f;
+	glWidget->colors[ind_NN * 3] = 0.0f;
+	glWidget->colors[ind_NN * 3 + 1] = 1.0f;
+	glWidget->colors[ind_NN * 3 + 2] = 0.0f;
 	
 	labelCloudBounds->setText("Found NN!");
 }
