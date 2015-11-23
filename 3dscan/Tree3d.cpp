@@ -208,6 +208,25 @@ std::vector<int> Tree3d::Node::rangeQuery(int depth, std::vector<Point3d> &point
 	return result;
 }
 
+std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, float radius)
+{
+	Point3d box_min = queryPoint - Point3d(radius, radius, radius);
+	Point3d box_max = queryPoint + Point3d(radius, radius, radius);
+
+	// TODO use lists instead of vectors to easaly filter indexlists
+	std::vector<int> indices_queryBox = rangeQuery(box_min, box_max);
+	std::vector<int> indices_querySphere;
+	for (int i = 0; i < indices_queryBox.size(); ++i)
+	{
+		float squaredDistToCenter = sqDistance3d(m_Points[indices_queryBox[i]], queryPoint);
+		if (squaredDistToCenter <= radius*radius)
+		{
+			indices_querySphere.push_back(indices_queryBox[i]);
+		}
+	}
+	return indices_querySphere;
+}
+
 bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, std::vector<float> &lowerBoundary, std::vector<float> &upperBoundary)
 {
 	bool pointInRange = true;
