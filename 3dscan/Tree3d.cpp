@@ -335,7 +335,9 @@ std::vector<Point3d> Tree3d::applySmoothing(double radius)
 	for (auto it = m_Points.begin(); it != m_Points.end(); ++it)
 	{
 		std::vector<int> neighbourIndices = radiusQuery(*it, radius);
-		
+		average.x = 0;
+		average.y = 0;
+		average.z = 0;
 		// extract averaging as own function
 		for (auto indexIt = neighbourIndices.begin(); indexIt != neighbourIndices.end(); ++indexIt)
 		{

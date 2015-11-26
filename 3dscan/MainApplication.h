@@ -30,5 +30,6 @@ private slots:
 	void radiusQuery();
 	void smoothPointCloud();
 	void nnQuery();
+	void colorPointsByDistance();
 };
 

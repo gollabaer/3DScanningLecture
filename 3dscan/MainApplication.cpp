@@ -54,6 +54,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	QPushButton *nnqueryButton = new QPushButton(tr("NN-Query"));
 	nnqueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
+	QPushButton *distanceColorMapButton = new QPushButton(tr("ColorbyDist"));
+	distanceColorMapButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+
 	glWidget = new MainGLWidget();
 
 	labelCloudBounds = new QLabel("---", this);
@@ -71,6 +74,8 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	connect(radiusQueryButton, SIGNAL(clicked()), this, SLOT(radiusQuery()));
 	connect(smoothingButton, SIGNAL(clicked()), this, SLOT(smoothPointCloud()));
 	connect(nnqueryButton, SIGNAL(clicked()), this, SLOT(nnQuery()));
+	connect(distanceColorMapButton, SIGNAL(clicked()), this, SLOT(colorPointsByDistance()));
+
 
 	layoutButtons->addWidget(labelCloudBounds);
 	layoutButtons->addWidget(loadButton);
@@ -78,7 +83,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	layoutButtons->addWidget(radiusQueryButton);
 	layoutButtons->addWidget(smoothingButton);
 	layoutButtons->addWidget(nnqueryButton);
-	layoutButtons->addWidget(quitButton);
+	layoutButtons->addWidget(distanceColorMapButton);
 	
 
 	QWidget* buttonWidget = new QWidget();
@@ -182,6 +187,26 @@ void MainApplication::radiusQuery(){
 	}
 }
 
+void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* outColor, float max){
+	
+	std::vector<double> distances = tree.calculateDistance(other);
+
+	float tempColor;
+	for (int i = 0; i < distances.size(); i++){
+		tempColor = distances[i];
+		tempColor /= max;
+		tempColor = !(1.0f<tempColor) ? tempColor : 1.0f;
+
+		outColor[i * 3 + 0] = tempColor;
+		outColor[i * 3 + 1] = 0.0f;
+		outColor[i * 3 + 2] = 1.0f - tempColor;
+	}
+}
+
+void MainApplication::colorPointsByDistance(){
+	colordistance(this->points, this->_Tree3d, this->glWidget->colors, 2.0f);
+}
+
 void MainApplication::smoothPointCloud()
 {
 	QString str = QInputDialog::getText(this, "Input radius","r");
@@ -193,7 +218,6 @@ void MainApplication::smoothPointCloud()
 	
 	this->points = smoothedCloud;
 }
-
 
 void MainApplication::nnQuery()
 {
