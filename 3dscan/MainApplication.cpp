@@ -48,6 +48,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	QPushButton *radiusQueryButton = new QPushButton(tr("Radius"));
 	radiusQueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
+	QPushButton *smoothingButton = new QPushButton(tr("Smooth"));
+	smoothingButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+
 	QPushButton *nnqueryButton = new QPushButton(tr("NN-Query"));
 	nnqueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
@@ -66,12 +69,14 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	connect(loadButton, SIGNAL(clicked()), this, SLOT(loadPoints()));
 	connect(rangequeryButton, SIGNAL(clicked()), this, SLOT(rangeQuery()));
 	connect(radiusQueryButton, SIGNAL(clicked()), this, SLOT(radiusQuery()));
+	connect(smoothingButton, SIGNAL(clicked()), this, SLOT(smoothPointCloud()));
 	connect(nnqueryButton, SIGNAL(clicked()), this, SLOT(nnQuery()));
 
 	layoutButtons->addWidget(labelCloudBounds);
 	layoutButtons->addWidget(loadButton);
 	layoutButtons->addWidget(rangequeryButton);
 	layoutButtons->addWidget(radiusQueryButton);
+	layoutButtons->addWidget(smoothingButton);
 	layoutButtons->addWidget(nnqueryButton);
 	layoutButtons->addWidget(quitButton);
 	
@@ -175,6 +180,18 @@ void MainApplication::radiusQuery(){
 		glWidget->colors[*it * 3 + 1] = 0;
 		glWidget->colors[*it * 3 + 2] = 0.2;
 	}
+}
+
+void MainApplication::smoothPointCloud()
+{
+	QString str = QInputDialog::getText(this, "Input radius","r");
+	if (!(str != NULL && !str.isEmpty())) return;
+
+	double radius = str.toDouble();
+
+	std::vector<Point3d> smoothedCloud = _Tree3d.applySmoothing(radius);
+	
+	this->points = smoothedCloud;
 }
 
 

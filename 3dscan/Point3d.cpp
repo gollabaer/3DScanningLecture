@@ -89,6 +89,17 @@ Point3d& Point3d::operator *= (double scalar)
   return *this;
 }
 
+Point3d& Point3d::operator /= (double scalar)
+{
+	// TODO: find better epsilon and better place to define it
+	const double EPSILON = 0.00000000001;
+	if (scalar - 0 < EPSILON)
+	{
+		throw std::invalid_argument("division by Zero");
+	}
+	return this->operator*=(1 / scalar);
+}
+
 
 //returns the square of a value (unfortunately C++ does not provide this function itself...)
 double sqr(double value)

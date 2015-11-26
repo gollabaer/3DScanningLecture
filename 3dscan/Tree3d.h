@@ -18,7 +18,8 @@ public:
 	// Functions
 	std::vector<int> rangeQuery(Point3d p1, Point3d p2); // returns the indices of all points inside the box formed by p1 and p2
 	std::vector<int> radiusQuery(Point3d queryPoint, double radius);
-	int nearestNeighbour(Point3d p); // the coordinates of the nearest neighbour
+	int nearestNeighbour(Point3d p); // index to the nearest neighbour
+	std::vector<Point3d> applySmoothing(double radius); // generates a smoothed pointclound by averaging the local neighbourhood
 private:
 	// Node Class
 	class Node

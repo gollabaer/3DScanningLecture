@@ -13,6 +13,7 @@ Tree3d::Tree3d(std::vector<Point3d> &points, int maxDepth)
 {
 	// assign member variables 
 	m_MaxDepth = maxDepth;
+	// TODO: avoid unnecessary copy of points
 	m_Points = points;
 	// intialize indices vector for root node
 	std::vector<int>* indices = new std::vector<int>();
@@ -324,6 +325,26 @@ void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentRange, in
 		if (pointm_AxisValues - currentRange < m_Median && m_LeftChild != NULL)
 			m_LeftChild->nearestNeighbour(queryPoint, currentRange, index, points);
 	}
+}
+
+std::vector<Point3d> Tree3d::applySmoothing(double radius)
+{
+	std::vector<Point3d> smoothedCloud;
+	Point3d average = Point3d(0, 0, 0);
+
+	for (auto it = m_Points.begin(); it != m_Points.end(); ++it)
+	{
+		std::vector<int> neighbourIndices = radiusQuery(*it, radius);
+		
+		// extract averaging as own function
+		for (auto indexIt = neighbourIndices.begin(); indexIt != neighbourIndices.end(); ++indexIt)
+		{
+			average += m_Points[*indexIt];
+		}
+		average /= neighbourIndices.size();
+		smoothedCloud.push_back(average);
+	}
+	return smoothedCloud;
 }
 
 
