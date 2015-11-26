@@ -20,6 +20,7 @@ public:
 	std::vector<int> radiusQuery(Point3d queryPoint, double radius);
 	int nearestNeighbour(Point3d p); // index to the nearest neighbour
 	std::vector<Point3d> applySmoothing(double radius); // generates a smoothed pointclound by averaging the local neighbourhood
+	std::vector<double> calculateDistance(std::vector<Point3d> other); // calculate for each point in other the distance to the closest point in this tree
 private:
 	// Node Class
 	class Node

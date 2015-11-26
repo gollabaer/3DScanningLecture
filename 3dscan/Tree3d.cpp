@@ -347,6 +347,17 @@ std::vector<Point3d> Tree3d::applySmoothing(double radius)
 	return smoothedCloud;
 }
 
+std::vector<double> Tree3d::calculateDistance(std::vector<Point3d> other)
+{
+	std::vector<double> distances;
+	for (auto it = other.begin(); it != other.end(); ++it)
+	{
+		Point3d nearesNeighbour = m_Points[nearestNeighbour(*it)];
+		distances.push_back(distance3d(*it, nearesNeighbour));
+	}
+	return distances;
+}
+
 
 // Getters
 
