@@ -1,9 +1,12 @@
 #include "Tree3d.h"
 #include <assert.h> 
+#include <limits>  // std::numeric_limits
 
 const int DIM = 3;
 
+/*-------------------------------------------------------------*/
 // Constructors
+/*-------------------------------------------------------------*/
 
 Tree3d::Tree3d()
 {
@@ -32,7 +35,107 @@ Tree3d::~Tree3d()
 	// delete this->m_Root;
 };
 
+/*-------------------------------------------------------------*/
+// Getters
+/*-------------------------------------------------------------*/
+
+int Tree3d::getNumberOfPoints()
+{
+	return m_Points.size() / DIM;
+}
+
+std::vector<Point3d> Tree3d::getPoints()
+{
+	return m_Points;
+}
+
+/*-------------------------------------------------------------*/
+// Functions
+/*-------------------------------------------------------------*/
+
+std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
+{
+	// assign lower and upper boundary of range query for each DIMension (0,1,2,...)
+	Point3d lowerBoundary, upperBoundary;
+
+	for (int iter = 0; iter < DIM; ++iter)
+	{
+		if (p1[iter] > p2[iter])
+		{
+			upperBoundary[iter] = p1[iter];
+			lowerBoundary[iter] = p2[iter];
+		}
+		else
+		{
+			lowerBoundary[iter] = p1[iter];
+			upperBoundary[iter] = p2[iter];
+		}
+	}
+	// recursivly report points
+	return this->m_Root->rangeQuery(this->m_Points, lowerBoundary, upperBoundary);
+}
+
+std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, double radius)
+{
+	Point3d lowerBoundary = queryPoint - Point3d(radius, radius, radius);
+	Point3d upperBoundary = queryPoint + Point3d(radius, radius, radius);
+
+	return this->m_Root->radiusQuery(this->m_Points, lowerBoundary, upperBoundary, queryPoint, radius);
+}
+
+int Tree3d::nearestNeighbour(Point3d p)
+{
+	// location is not always a leaf node and has indices
+	int ind = -1;
+
+	// use maximum double value for initialization
+	double dist = std::numeric_limits<double>::max();
+
+	m_Root->nearestNeighbour(p, dist, ind, m_Points);
+	return ind;
+}
+
+std::vector<Point3d> Tree3d::applySmoothing(double radius)
+{
+	std::vector<Point3d> smoothedCloud;
+	Point3d average = Point3d(0, 0, 0);
+
+	for (auto it = m_Points.begin(); it != m_Points.end(); ++it)
+	{
+		std::vector<int> neighbourIndices = radiusQuery(*it, radius);
+		average.x = 0;
+		average.y = 0;
+		average.z = 0;
+		// extract averaging as own function
+		for (auto indexIt = neighbourIndices.begin(); indexIt != neighbourIndices.end(); ++indexIt)
+		{
+			average += m_Points[*indexIt];
+		}
+		average /= neighbourIndices.size();
+		smoothedCloud.push_back(average);
+	}
+	return smoothedCloud;
+}
+
+std::vector<double> Tree3d::calculateDistance(std::vector<Point3d> other)
+{
+	std::vector<double> distances;
+	// for each point in other compute nearest neighbour distance
+	for (auto it = other.begin(); it != other.end(); ++it)
+	{
+		Point3d nearesNeighbour = m_Points[nearestNeighbour(*it)];
+		distances.push_back(distance3d(*it, nearesNeighbour));
+	}
+	return distances;
+}
+
+/*-------------------------------------------------------------*/
 // Node Class
+/*-------------------------------------------------------------*/
+
+/*----------------------------*/
+//Constructors
+/*----------------------------*/
 
 Tree3d::Node::Node()
 {
@@ -125,6 +228,10 @@ Tree3d::Node::~Node()
 	//delete this->m_RightChild;
 }
 
+/*----------------------------*/
+//Getters
+/*----------------------------*/
+
 Tree3d::Node* Tree3d::Node::getParent()
 {
 	return m_Parent;
@@ -163,6 +270,10 @@ std::vector<int> Tree3d::Node::getIndices()
 		return std::vector<int> ();
 
 }
+
+/*----------------------------*/
+//Functions
+/*----------------------------*/
 
 bool Tree3d::Node::isLeaf()
 {
@@ -283,137 +394,53 @@ std::vector<int> Tree3d::Node::radiusQuery(std::vector<Point3d> &points, Point3d
 	return result;
 }
 
-void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentRange, int &index, std::vector<Point3d> &points){
+void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points){
 
-	double pointm_AxisValues = queryPoint[m_Axis];
+	// get position of quey point on current axis
+	double queryPointAxisValue = queryPoint[m_Axis];
 
 	//report nearest neighbour in leaf
 	if (isLeaf()) {
 
-		double t_dist =  sqDistance3d(queryPoint, points[m_Indices->operator[](0)]);
-		int t_index = m_Indices->operator[](0);
+		double currentDistance =  sqDistance3d(queryPoint, points[m_Indices->operator[](0)]);
+		int currentIndex = m_Indices->operator[](0);
 
 		//find closest point in node 
 		for (int i = 1; i < m_Indices->size(); i++)
 		{
-			double t_t_dist = sqDistance3d(queryPoint, points[m_Indices->operator[](i)]);
-			if (t_t_dist < t_dist){
-				t_dist = t_t_dist;
-				t_index = m_Indices->operator[](i);
+			double newDistance = sqDistance3d(queryPoint, points[m_Indices->operator[](i)]);
+			// if newDistance is smaller than currentDistance save newDistance
+			if (newDistance < currentDistance){
+				currentDistance = newDistance;
+				currentIndex = m_Indices->operator[](i);
 			}
 		}
-		if (currentRange > t_dist){
-			currentRange = t_dist;
-			index = t_index;
+		// if node's smallest distance is smaller than currentMinimumDistance save currentDistance
+		if (currentMinimumDistance > currentDistance){
+			currentMinimumDistance = currentDistance;
+			index = currentIndex;
 			return;
 		}
 	}
 
-	if (pointm_AxisValues < m_Median)
+	// if node is not a leaf and smaller/equal median -> traverse left child
+	if (queryPointAxisValue <= m_Median)
 	{
 		if (m_LeftChild != NULL)
-			m_LeftChild->nearestNeighbour(queryPoint, currentRange, index, points);
+			m_LeftChild->nearestNeighbour(queryPoint, currentMinimumDistance, index, points);
 
-		if (pointm_AxisValues + currentRange > m_Median && m_RightChild != NULL)
-			m_RightChild->nearestNeighbour(queryPoint, currentRange, index, points);
+		if (queryPointAxisValue + currentMinimumDistance > m_Median && m_RightChild != NULL)
+			m_RightChild->nearestNeighbour(queryPoint, currentMinimumDistance, index, points);
 	}
+	// if node is not a leaf and bigger than median -> traverse right child
 	else
 	{
 		if (m_RightChild != NULL)
-			m_RightChild->nearestNeighbour(queryPoint, currentRange, index, points);
+			m_RightChild->nearestNeighbour(queryPoint, currentMinimumDistance, index, points);
 
-		if (pointm_AxisValues - currentRange < m_Median && m_LeftChild != NULL)
-			m_LeftChild->nearestNeighbour(queryPoint, currentRange, index, points);
+		if (queryPointAxisValue - currentMinimumDistance < m_Median && m_LeftChild != NULL)
+			m_LeftChild->nearestNeighbour(queryPoint, currentMinimumDistance, index, points);
 	}
-}
-
-std::vector<Point3d> Tree3d::applySmoothing(double radius)
-{
-	std::vector<Point3d> smoothedCloud;
-	Point3d average = Point3d(0, 0, 0);
-
-	for (auto it = m_Points.begin(); it != m_Points.end(); ++it)
-	{
-		std::vector<int> neighbourIndices = radiusQuery(*it, radius);
-		average.x = 0;
-		average.y = 0;
-		average.z = 0;
-		// extract averaging as own function
-		for (auto indexIt = neighbourIndices.begin(); indexIt != neighbourIndices.end(); ++indexIt)
-		{
-			average += m_Points[*indexIt];
-		}
-		average /= neighbourIndices.size();
-		smoothedCloud.push_back(average);
-	}
-	return smoothedCloud;
-}
-
-std::vector<double> Tree3d::calculateDistance(std::vector<Point3d> other)
-{
-	std::vector<double> distances;
-	for (auto it = other.begin(); it != other.end(); ++it)
-	{
-		Point3d nearesNeighbour = m_Points[nearestNeighbour(*it)];
-		distances.push_back(distance3d(*it, nearesNeighbour));
-	}
-	return distances;
-}
-
-
-// Getters
-
-int Tree3d::getNumberOfPoints()
-{
-	return m_Points.size() / DIM;
-}
-
-std::vector<Point3d> Tree3d::getPoints()
-{
-	return m_Points;
-}
-
-// Functions
-
-std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
-{
-	// assign lower and upper boundary of range query for each DIMension (0,1,2,...)
-	Point3d lowerBoundary, upperBoundary;
-
-	for (int iter = 0; iter < DIM; ++iter)
-	{
-		if (p1[iter] > p2[iter])
-		{
-			upperBoundary[iter] = p1[iter];
-			lowerBoundary[iter] = p2[iter];
-		}
-		else
-		{
-			lowerBoundary[iter] = p1[iter];
-			upperBoundary[iter] = p2[iter];
-		}
-	}
-	// recursivly report points
-	return this->m_Root->rangeQuery(this->m_Points, lowerBoundary, upperBoundary);
-}
-
-std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, double radius)
-{
-	Point3d lowerBoundary = queryPoint - Point3d(radius, radius, radius);
-	Point3d upperBoundary = queryPoint + Point3d(radius, radius, radius);
-
-	return this->m_Root->radiusQuery(this->m_Points, lowerBoundary, upperBoundary, queryPoint, radius);
-}
-
-int Tree3d::nearestNeighbour(Point3d p)
-{
-	// location is not always a leaf node and has indices
-	int ind = -1;
-
-	double dist = 1000000000.0f;
-
-	m_Root->nearestNeighbour(p, dist, ind, m_Points);
-	return ind;
 }
 
 

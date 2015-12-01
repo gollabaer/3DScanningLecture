@@ -42,3 +42,4 @@ Win32/
 3dscan/DebugGeneratedFiles
 
 *.opensdf
+*.TMP
