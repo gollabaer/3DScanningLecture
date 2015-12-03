@@ -10,6 +10,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <limits>
 
 std::vector<Point3d> xyzFileToVec(std::string source){
 
@@ -187,14 +188,21 @@ void MainApplication::radiusQuery(){
 	}
 }
 
-void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* outColor, float max){
+void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* outColor){
 	
 	std::vector<double> distances = tree.calculateDistance(other);
+	double maxDist = 0;
+	double minDist = std::numeric_limits<double>::max();
+	for (auto it = distances.begin(); it != distances.end(); ++it)
+	{
+		maxDist = (*it > maxDist) ? *it : maxDist;
+		minDist = (*it < minDist) ? *it : minDist;
+	}
 
 	float tempColor;
 	for (int i = 0; i < distances.size(); i++){
 		tempColor = distances[i];
-		tempColor /= max;
+		tempColor /= maxDist;
 		tempColor = !(1.0f<tempColor) ? tempColor : 1.0f;
 
 		outColor[i * 3 + 0] = tempColor;
@@ -204,7 +212,7 @@ void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* ou
 }
 
 void MainApplication::colorPointsByDistance(){
-	colordistance(this->points, this->_Tree3d, this->glWidget->colors, 2.0f);
+	colordistance(this->points, this->_Tree3d, this->glWidget->colors);
 }
 
 void MainApplication::smoothPointCloud()
