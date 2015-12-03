@@ -212,7 +212,8 @@ void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* ou
 }
 
 void MainApplication::colorPointsByDistance(){
-	colordistance(this->points, this->_Tree3d, this->glWidget->colors);
+	colordistance(this->_Tree3d.getPoints(), this->trees.front(), this->glWidget->colors);
+	this->points = _Tree3d.getPoints();
 }
 
 void MainApplication::smoothPointCloud()
@@ -223,6 +224,8 @@ void MainApplication::smoothPointCloud()
 	double radius = str.toDouble();
 
 	std::vector<Point3d> smoothedCloud = _Tree3d.applySmoothing(radius);
+
+	this->trees.push_back(Tree3d(smoothedCloud, 100));
 	
 	this->points = smoothedCloud;
 }

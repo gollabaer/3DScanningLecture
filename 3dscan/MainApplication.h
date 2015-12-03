@@ -5,6 +5,7 @@
 #include <vector>
 #include "mainglwidget.h"
 #include <qlabel.h>
+#include <list>
 
 #pragma once
 
@@ -18,6 +19,7 @@ public:
 	~MainApplication();
 
 private:
+	std::list<Tree3d> trees;
 	Tree3d _Tree3d;
 	std::vector<Point3d> points;
 	MainGLWidget * glWidget;
