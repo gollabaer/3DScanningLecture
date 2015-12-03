@@ -482,17 +482,18 @@ void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &po
 	}
 	//if not leave recurse
 	else{
-		//if both get removed, remove this node too
-		bool isremoved = true;
-		if (m_LeftChild != 0 && !m_LeftChild->isRemoved()){
+		
+		if (m_LeftChild != 0 && !m_LeftChild->isRemoved() 
+			&& point[m_Axis]-radius <= m_Median ){
 			m_LeftChild->removePointsInRadius(point, points, flags, radius);
-			if (!m_LeftChild->isRemoved()) isremoved = false;
 		}
-		if (m_RightChild != 0 && !m_RightChild->isRemoved()){
+		if (m_RightChild != 0 && !m_RightChild->isRemoved()
+			&& point[m_Axis]+radius >= m_Median){
 			m_RightChild->removePointsInRadius(point, points, flags, radius);
-			if (!m_RightChild->isRemoved()) isremoved = false;
+			
 		}
-		m_removedFlag = isremoved;
+		if ((m_LeftChild == 0 || m_LeftChild->isRemoved()) && (m_RightChild == 0 || m_RightChild->isRemoved()))
+			m_removedFlag = true;
 	}
 
 }
