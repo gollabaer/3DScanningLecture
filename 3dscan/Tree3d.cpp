@@ -16,7 +16,6 @@ Tree3d::Tree3d(std::vector<Point3d> &points, int maxDepth)
 {
 	// assign member variables 
 	m_MaxDepth = maxDepth;
-	// TODO: avoid unnecessary copy of points
 	m_Points = points;
 	// intialize indices vector for root node
 	std::vector<int>* indices = new std::vector<int>();
