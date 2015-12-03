@@ -10,6 +10,7 @@ class Tree3d
 public:
 	// Constructors
 	Tree3d();
+	// makes a copy of points
 	Tree3d(std::vector<Point3d> &points, int maxDepth);
 	~Tree3d();
 	// Getter
