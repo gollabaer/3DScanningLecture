@@ -25,6 +25,8 @@ struct Point3d
   Point3d operator * (double scalar) const;     // multiplication with a scalar value(pt2 = pt1 * 0.5)
   const double &operator [] (int index) const;     // acces element by index, 0,1,2
 
+  bool operator == (const Point3d& p2) const;
+
   //assignments with operator
   //the operators can not be marked CONST because they do change the input
   Point3d& operator += (const Point3d& p2); // += operation of two points (pt1+= pt2  -> pt1 = pt1 + pt2)

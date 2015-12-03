@@ -31,5 +31,6 @@ private slots:
 	void smoothPointCloud();
 	void nnQuery();
 	void colorPointsByDistance();
+	void applyThinning();
 };
 

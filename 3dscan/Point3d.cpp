@@ -100,6 +100,12 @@ Point3d& Point3d::operator /= (double scalar)
 	return this->operator*=(1 / scalar);
 }
 
+bool Point3d::operator == (const Point3d& p2) const
+{
+	
+	return ((this->x == p2.x) && (this->y == p2.y) && (this->y == p2.y)) ;
+}
+
 
 //returns the square of a value (unfortunately C++ does not provide this function itself...)
 double sqr(double value)

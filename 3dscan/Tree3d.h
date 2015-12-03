@@ -21,6 +21,8 @@ public:
 	int nearestNeighbour(Point3d p); // index to the nearest neighbour
 	std::vector<Point3d> applySmoothing(double radius); // generates a smoothed pointclound by averaging the local neighbourhood
 	std::vector<double> calculateDistance(std::vector<Point3d> other); // calculate for each point in other the distance to the closest point in this tree
+	void applyThinningByRadius(double r);
+	std::vector<Point3d> getThinnedPoints();
 private:
 	// Node Class
 	class Node
@@ -44,6 +46,9 @@ private:
 		bool inline pointIsInRange(int index, std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary); // test if the point defined by index is located inbetween the lower and upper boundary in every DIMension
 		void nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points); // recursivly search for the nearest neighbor of the queryPoint
 		std::vector<int> radiusQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary, Point3d &queryPoint, double &radius); // recursively reports points in the subtree of the node inside the defined sphere
+		void removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &flags, double radius);
+		bool isRemoved();
+		
 	private:
 		// Member Variables
 		Node* m_Parent; // Parent Node
@@ -54,10 +59,12 @@ private:
 		double m_Max; // Maximum Value of Node's points on current axis
 		int m_Axis; // x = 0, y = 1, z = 2
 		std::vector<int>* m_Indices; // Indices of Node's points
+		bool m_removedFlag;
 	};
 	// Member Variables
 	Node* m_Root; // root node of the tree
 	std::vector<Point3d> m_Points; // list of all the point stored in the tree
+	std::vector<bool> m_pointremovedFlags; // corresponding  to list of points
 	int m_MaxDepth; // maximum depth of the tree
 	// Functions
 };

@@ -71,7 +71,7 @@ void MainGLWidget::paintGL() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
-	glDrawArrays(GL_POINTS, 0, count / 3);
+	glDrawArrays(GL_POINTS, 0, m_vertices->size());
 
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);

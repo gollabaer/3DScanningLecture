@@ -57,6 +57,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	QPushButton *distanceColorMapButton = new QPushButton(tr("ColorbyDist"));
 	distanceColorMapButton->setFont(QFont("Times", 12, QFont::AnyStyle));
 
+	QPushButton *thinningMapButton = new QPushButton(tr("Thinning"));
+	thinningMapButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+
 	glWidget = new MainGLWidget();
 
 	labelCloudBounds = new QLabel("---", this);
@@ -75,6 +78,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	connect(smoothingButton, SIGNAL(clicked()), this, SLOT(smoothPointCloud()));
 	connect(nnqueryButton, SIGNAL(clicked()), this, SLOT(nnQuery()));
 	connect(distanceColorMapButton, SIGNAL(clicked()), this, SLOT(colorPointsByDistance()));
+	connect(thinningMapButton, SIGNAL(clicked()), this, SLOT(applyThinning()));
 
 
 	layoutButtons->addWidget(labelCloudBounds);
@@ -84,6 +88,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	layoutButtons->addWidget(smoothingButton);
 	layoutButtons->addWidget(nnqueryButton);
 	layoutButtons->addWidget(distanceColorMapButton);
+	layoutButtons->addWidget(thinningMapButton);
 	
 
 	QWidget* buttonWidget = new QWidget();
@@ -242,4 +247,18 @@ void MainApplication::nnQuery()
 	glWidget->colors[ind_NN * 3 + 2] = 0.0f;
 	
 	labelCloudBounds->setText("Found NN!");
+}
+
+
+
+void MainApplication::applyThinning()
+{
+	QString str = QInputDialog::getText(this, "Input radius", "r");
+	if (!(str != NULL && !str.isEmpty())) return;
+
+	double radius = str.toDouble();
+
+	_Tree3d.applyThinningByRadius(radius);
+
+	this->points = _Tree3d.getThinnedPoints();
 }

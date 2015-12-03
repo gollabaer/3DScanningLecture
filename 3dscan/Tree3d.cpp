@@ -21,6 +21,9 @@ Tree3d::Tree3d(std::vector<Point3d> &points, int maxDepth)
 	// intialize indices vector for root node
 	std::vector<int>* indices = new std::vector<int>();
 	indices->resize(points.size());
+	m_pointremovedFlags = std::vector<bool>();
+	m_pointremovedFlags.resize(points.size());
+	for (int i = 0; i < points.size(); i++)m_pointremovedFlags[i] = 0;
 	int tmp = 0;
 	for (std::vector<int>::iterator it = indices->begin(); it != indices->end(); ++it)
 	{
@@ -262,6 +265,11 @@ double Tree3d::Node::getMin()
 	return m_Min;
 }
 
+bool Tree3d::Node::isRemoved()
+{ 
+	return this->m_removedFlag; 
+}
+
 std::vector<int> Tree3d::Node::getIndices()
 {
 	if (m_Indices != NULL)
@@ -443,4 +451,59 @@ void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDi
 	}
 }
 
+void Tree3d::applyThinningByRadius(double r){
+	for (int i = 0; i < m_Points.size(); i++){
+		if (!m_pointremovedFlags[i]){
+			m_Root->removePointsInRadius(m_Points[i],m_Points, m_pointremovedFlags, r);
+		}
+	}
+}
 
+void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &flags, double radius){
+	//if leave check indices
+	if (this->isLeaf()){
+		bool isremoved = true;
+		for (int i = 0; i < m_Indices->size(); i++){
+			int index = m_Indices->operator[](i);
+			//if point still "alive"
+			if (!flags[index]){
+				//if point in radius
+				if ((sqDistance3d(point, points[index])) <= sqr(radius)
+					&& !(point == points[index]))
+				{
+					flags[index] = true;
+				}
+				else{
+					isremoved = false;
+				}
+			}
+		}
+		m_removedFlag = isremoved;
+	}
+	//if not leave recurse
+	else{
+		//if both get removed, remove this node too
+		bool isremoved = true;
+		if (m_LeftChild != 0){
+			m_LeftChild->removePointsInRadius(point, points, flags, radius);
+			if (!m_LeftChild->isRemoved()) isremoved = false;
+		}
+		if (m_RightChild != 0){
+			m_RightChild->removePointsInRadius(point, points, flags, radius);
+			if (!m_RightChild->isRemoved()) isremoved = false;
+		}
+		m_removedFlag = isremoved;
+	}
+
+}
+
+std::vector<Point3d> Tree3d::getThinnedPoints(){
+	std::vector<Point3d> thinnedPoints;
+
+	for (int i = 0; i < m_Points.size(); i++){
+		if (!m_pointremovedFlags[i])
+			thinnedPoints.push_back(m_Points[i]);
+	}
+
+	return thinnedPoints;
+}
