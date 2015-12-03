@@ -153,6 +153,7 @@ Tree3d::Node::Node(std::vector<int>* indices, std::vector<Point3d> &points, int 
 	m_LeftChild = NULL;
 	m_RightChild = NULL;
 	m_Indices = NULL;
+	m_removedFlag = false;
 
 	// sort by axis
 	std::sort(begin(*indices), end(*indices), [&](size_t a, size_t b) { return points[a][m_Axis] < points[b][m_Axis]; });
@@ -483,11 +484,11 @@ void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &po
 	else{
 		//if both get removed, remove this node too
 		bool isremoved = true;
-		if (m_LeftChild != 0){
+		if (m_LeftChild != 0 && !m_LeftChild->isRemoved()){
 			m_LeftChild->removePointsInRadius(point, points, flags, radius);
 			if (!m_LeftChild->isRemoved()) isremoved = false;
 		}
-		if (m_RightChild != 0){
+		if (m_RightChild != 0 && !m_RightChild->isRemoved()){
 			m_RightChild->removePointsInRadius(point, points, flags, radius);
 			if (!m_RightChild->isRemoved()) isremoved = false;
 		}
