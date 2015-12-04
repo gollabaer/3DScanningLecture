@@ -120,6 +120,7 @@ MainApplication::~MainApplication()
 void MainApplication::loadPoints(){
 
 	labelCloudBounds->setText("Loading...");
+	labelTime->setText(QString("---"));
 
 	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
 
@@ -164,9 +165,14 @@ void MainApplication::loadPoints(){
 	labelCloudBounds->setText(QString(boundingBoxDimensions.c_str()));
 }
 
-void MainApplication::rangeQuery(){
+void MainApplication::rangeQuery()
+{
+	labelTime->setText(QString("---"));
+
 	QString str = QInputDialog::getText(this, "Input points:", "x1 y1 z1 x2 y2 z2");
 	if (!(str != NULL && !str.isEmpty()))return;
+
+
 	QStringList strList = str.split(" ");
 
 	if (strList.size() != 6) return;
@@ -198,9 +204,13 @@ void MainApplication::rangeQuery(){
 	}
 }
 
-void MainApplication::radiusQuery(){
+void MainApplication::radiusQuery()
+{
+	labelTime->setText(QString("---"));
+
 	QString str = QInputDialog::getText(this, "Input point and radius:", "x y z r");
 	if (!(str != NULL && !str.isEmpty()))return;
+
 	QStringList strList = str.split(" ");
 
 	if (strList.size() != 4) return;
@@ -256,7 +266,9 @@ void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* ou
 	}
 }
 
-void MainApplication::colorPointsByDistance(){
+void MainApplication::colorPointsByDistance()
+{
+	labelTime->setText(QString("---"));
 
 	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
 
@@ -274,8 +286,10 @@ void MainApplication::colorPointsByDistance(){
 
 void MainApplication::smoothPointCloud()
 {
+	labelTime->setText(QString("---"));
+
 	QString str = QInputDialog::getText(this, "Input radius","r");
-	if (!(str != NULL && !str.isEmpty())) return;
+	if (!(str != NULL && !str.isEmpty())) return;	
 
 	double radius = str.toDouble();
 
@@ -297,8 +311,11 @@ void MainApplication::smoothPointCloud()
 
 void MainApplication::nnQuery()
 {
+	labelTime->setText(QString("---"));
+
 	QString str = QInputDialog::getText(this, "Input point:", "x1 y1 z1");
 	if (!(str != NULL && !str.isEmpty()))return;
+	
 	QStringList strList = str.split(" ");
 
 	if (strList.size() != 3) return;
@@ -334,6 +351,8 @@ void MainApplication::nnQuery()
 
 void MainApplication::applyThinning()
 {
+	labelTime->setText(QString("---"));
+
 	QString str = QInputDialog::getText(this, "Input radius", "r");
 	if (!(str != NULL && !str.isEmpty())) return;
 

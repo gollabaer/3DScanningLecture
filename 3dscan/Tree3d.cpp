@@ -379,9 +379,8 @@ bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, Point
 
 void Tree3d::Node::radiusQuery(std::vector<Point3d> &points, std::vector<int> &outIndices, Point3d &queryPoint, double &radius)
 {
-	
-
-	if (isLeaf())// if the left child is NULL the node has to be a leaf, so traverse points and return fitting ones
+	// if the left child is NULL the node has to be a leaf, so traverse points and return fitting ones
+	if (isLeaf())
 	{
 		// traverse (sorted) indices from front to back until value is bigger than median
 		for (int i = 0; i < m_Indices->size(); i++)
@@ -393,9 +392,7 @@ void Tree3d::Node::radiusQuery(std::vector<Point3d> &points, std::vector<int> &o
 				outIndices.push_back(m_Indices->operator[](i));
 			}
 		}
-	}
-
-	
+	}	
 	// check right child and add points to result
 	if (this->m_RightChild != NULL 
 		&& queryPoint[m_Axis] + radius >= m_Median)
@@ -413,7 +410,8 @@ void Tree3d::Node::radiusQuery(std::vector<Point3d> &points, std::vector<int> &o
 	
 }
 
-void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points){
+void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points)
+{
 
 	// get position of quey point on current axis
 	double queryPointAxisValue = queryPoint[m_Axis];
@@ -441,7 +439,6 @@ void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDi
 			return;
 		}
 	}
-
 	// if node is not a leaf and smaller/equal median -> traverse left child
 	if (queryPointAxisValue <= m_Median)
 	{
@@ -462,11 +459,14 @@ void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDi
 	}
 }
 
-void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &pointIsRemovedFlags, double radius){
+void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &pointIsRemovedFlags, double radius)
+{
 	//if leave check indices
-	if (this->isLeaf()){
+	if (this->isLeaf())
+	{
 		bool isremoved = true;
-		for (int i = 0; i < m_Indices->size(); i++){
+		for (int i = 0; i < m_Indices->size(); i++)
+		{
 			int index = m_Indices->operator[](i);
 			//if point still "alive"
 			if (!pointIsRemovedFlags[index]){
@@ -476,7 +476,8 @@ void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &po
 				{
 					pointIsRemovedFlags[index] = true;
 				}
-				else{
+				else
+				{
 					isremoved = false;
 				}
 			}
@@ -498,7 +499,6 @@ void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &po
 		if ((m_LeftChild == 0 || m_LeftChild->isRemoved()) && (m_RightChild == 0 || m_RightChild->isRemoved()))
 			m_removedFlag = true;
 	}
-
 }
 
 
