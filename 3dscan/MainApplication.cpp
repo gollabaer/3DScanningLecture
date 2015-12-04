@@ -120,6 +120,9 @@ MainApplication::~MainApplication()
 void MainApplication::loadPoints(){
 
 	labelCloudBounds->setText("Loading...");
+
+	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+
 	QString fstr = QFileDialog::getOpenFileName(this, tr("Open File"), "c:/", tr("Point Files (*.xyz)"));
 	
 	if (!(fstr != NULL && !fstr.isEmpty())){
@@ -150,6 +153,13 @@ void MainApplication::loadPoints(){
 	// build up the kd-Tree
 	labelCloudBounds->setText("Building Tree3d...");
 	this->_Tree3d = Tree3d(points, 100);
+
+	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
+	std::chrono::duration<double> t = t2 - t1;
+	std::stringstream tStream;
+	tStream.precision(5);
+	tStream << t.count() << " seconds";
+	labelTime->setText(QString(tStream.str().c_str()));
 
 	labelCloudBounds->setText(QString(boundingBoxDimensions.c_str()));
 }
@@ -247,7 +257,18 @@ void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* ou
 }
 
 void MainApplication::colorPointsByDistance(){
+
+	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+
 	colordistance(this->_Tree3d.getPoints(), this->trees.front(), this->glWidget->colors);
+
+	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
+	std::chrono::duration<double> t = t2 - t1;
+	std::stringstream sStream;
+	sStream.precision(5);
+	sStream << t.count() << " seconds";
+	labelTime->setText(QString(sStream.str().c_str()));
+
 	this->points = _Tree3d.getPoints();
 }
 

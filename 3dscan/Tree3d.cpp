@@ -462,19 +462,19 @@ void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDi
 	}
 }
 
-void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &flags, double radius){
+void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &pointIsRemovedFlags, double radius){
 	//if leave check indices
 	if (this->isLeaf()){
 		bool isremoved = true;
 		for (int i = 0; i < m_Indices->size(); i++){
 			int index = m_Indices->operator[](i);
 			//if point still "alive"
-			if (!flags[index]){
+			if (!pointIsRemovedFlags[index]){
 				//if point in radius
 				if ((sqDistance3d(point, points[index])) <= sqr(radius)
 					&& !(point == points[index]))
 				{
-					flags[index] = true;
+					pointIsRemovedFlags[index] = true;
 				}
 				else{
 					isremoved = false;
@@ -488,11 +488,11 @@ void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &po
 		
 		if (m_LeftChild != 0 && !m_LeftChild->isRemoved() 
 			&& point[m_Axis]-radius <= m_Median ){
-			m_LeftChild->removePointsInRadius(point, points, flags, radius);
+			m_LeftChild->removePointsInRadius(point, points, pointIsRemovedFlags, radius);
 		}
 		if (m_RightChild != 0 && !m_RightChild->isRemoved()
 			&& point[m_Axis]+radius >= m_Median){
-			m_RightChild->removePointsInRadius(point, points, flags, radius);
+			m_RightChild->removePointsInRadius(point, points, pointIsRemovedFlags, radius);
 			
 		}
 		if ((m_LeftChild == 0 || m_LeftChild->isRemoved()) && (m_RightChild == 0 || m_RightChild->isRemoved()))
