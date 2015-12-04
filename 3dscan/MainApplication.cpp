@@ -11,6 +11,9 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
+#include <chrono>
+#include <math.h>
+
 
 std::vector<Point3d> xyzFileToVec(std::string source){
 
@@ -37,34 +40,39 @@ std::vector<Point3d> xyzFileToVec(std::string source){
 
 MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 {
+	const int textSize = 12;
+
 	QPushButton *quitButton = new QPushButton(tr("Quit"));
-	quitButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+	quitButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *loadButton = new QPushButton(tr("Load"));
-	loadButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+	loadButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *rangequeryButton = new QPushButton(tr("Range"));
-	rangequeryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+	rangequeryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *radiusQueryButton = new QPushButton(tr("Radius"));
-	radiusQueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+	radiusQueryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *smoothingButton = new QPushButton(tr("Smooth"));
-	smoothingButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+	smoothingButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *nnqueryButton = new QPushButton(tr("NN-Query"));
-	nnqueryButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+	nnqueryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *distanceColorMapButton = new QPushButton(tr("ColorbyDist"));
-	distanceColorMapButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+	distanceColorMapButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *thinningMapButton = new QPushButton(tr("Thinning"));
-	thinningMapButton->setFont(QFont("Times", 12, QFont::AnyStyle));
+	thinningMapButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	glWidget = new MainGLWidget();
 
 	labelCloudBounds = new QLabel("---", this);
 	labelCloudBounds->setMaximumHeight(60);
+
+	labelTime = new QLabel("---", this);
+	labelTime->setMaximumHeight(60);
 
 	glWidget->resize(640, 380);
 
@@ -90,11 +98,12 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	layoutButtons->addWidget(nnqueryButton);
 	layoutButtons->addWidget(distanceColorMapButton);
 	layoutButtons->addWidget(thinningMapButton);
+	layoutButtons->addWidget(labelTime);
 	
 
 	QWidget* buttonWidget = new QWidget();
 	buttonWidget->setLayout(layoutButtons);
-	buttonWidget->setFixedWidth(120);
+	buttonWidget->setFixedWidth(140);
 	glWidget->setMinimumWidth(640);
 	glWidget->setMinimumHeight(380);
 	layoutMain->addWidget(glWidget);
@@ -156,7 +165,17 @@ void MainApplication::rangeQuery(){
 	Point3d	v2 = Point3d(strList.at(3).toFloat(), strList.at(4).toFloat(), strList.at(5).toFloat());
 
 	std::vector<int> quvec;
+
+	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+	
 	quvec = _Tree3d.rangeQuery(v1, v2);
+
+	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
+	std::chrono::duration<double> t = t2 - t1;
+	std::stringstream sStream;
+	sStream.precision(5);
+	sStream  << t.count() << " seconds";
+	labelTime->setText(QString(sStream.str().c_str()));
 
 	for (int i = 0; i < glWidget->count; i++)
 		glWidget->colors[i] = 0.3f;
@@ -180,7 +199,17 @@ void MainApplication::radiusQuery(){
 	float radius = strList.at(3).toFloat();
 
 	std::vector<int> quvec;
+
+	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+
 	quvec = _Tree3d.radiusQuery(queryPoint, radius);
+
+	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
+	std::chrono::duration<double> t = t2 - t1;
+	std::stringstream sStream;
+	sStream.precision(5);
+	sStream << t.count() << " seconds";
+	labelTime->setText(QString(sStream.str().c_str()));
 
 	for (int i = 0; i < glWidget->count; i++)
 		glWidget->colors[i] = 0.3;
@@ -196,6 +225,7 @@ void MainApplication::radiusQuery(){
 void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* outColor){
 	
 	std::vector<double> distances = tree.calculateDistance(other);
+
 	double maxDist = 0;
 	double minDist = std::numeric_limits<double>::max();
 	for (auto it = distances.begin(); it != distances.end(); ++it)
@@ -228,7 +258,16 @@ void MainApplication::smoothPointCloud()
 
 	double radius = str.toDouble();
 
+	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+
 	std::vector<Point3d> smoothedCloud = _Tree3d.applySmoothing(radius);
+
+	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
+	std::chrono::duration<double> t = t2 - t1;
+	std::stringstream sStream;
+	sStream.precision(5);
+	sStream << t.count() << " seconds";
+	labelTime->setText(QString(sStream.str().c_str()));
 
 	this->trees.push_back(Tree3d(smoothedCloud, 100));
 	
@@ -247,7 +286,17 @@ void MainApplication::nnQuery()
 	
 	Point3d v1 = Point3d(strList.at(0).toFloat(), strList.at(1).toFloat(), strList.at(2).toFloat());
 
+	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+
 	int ind_NN = _Tree3d.nearestNeighbour(v1);
+
+	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
+	std::chrono::duration<double> t = t2 - t1;
+	std::stringstream sStream;
+	sStream.precision(5);
+	sStream << t.count() << " seconds";
+	labelTime->setText(QString(sStream.str().c_str()));
+
 	
 	for (int i = 0; i < glWidget->count; i++)
 		glWidget->colors[i] = 0.3f;
@@ -269,7 +318,16 @@ void MainApplication::applyThinning()
 
 	double radius = str.toDouble();
 
+	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+
 	_Tree3d.applyThinningByRadius(radius);
+
+	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
+	std::chrono::duration<double> t = t2 - t1;
+	std::stringstream sStream;
+	sStream.precision(5);
+	sStream << t.count() << " seconds";
+	labelTime->setText(QString(sStream.str().c_str()));
 
 	this->points = _Tree3d.getThinnedPoints();
 }

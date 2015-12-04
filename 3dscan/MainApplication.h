@@ -24,6 +24,7 @@ private:
 	std::vector<Point3d> points;
 	MainGLWidget * glWidget;
 	QLabel* labelCloudBounds;
+	QLabel* labelTime;
 	
 
 private slots:

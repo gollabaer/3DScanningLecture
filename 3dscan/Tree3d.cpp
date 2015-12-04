@@ -131,6 +131,27 @@ std::vector<double> Tree3d::calculateDistance(std::vector<Point3d> other)
 	return distances;
 }
 
+std::vector<Point3d> Tree3d::getThinnedPoints()
+{
+	std::vector<Point3d> thinnedPoints;
+
+	for (int i = 0; i < m_Points.size(); i++){
+		if (!m_pointremovedFlags[i])
+			thinnedPoints.push_back(m_Points[i]);
+	}
+
+	return thinnedPoints;
+}
+
+void Tree3d::applyThinningByRadius(double r)
+{
+	for (int i = 0; i < m_Points.size(); i++){
+		if (!m_pointremovedFlags[i]){
+			m_Root->removePointsInRadius(m_Points[i], m_Points, m_pointremovedFlags, r);
+		}
+	}
+}
+
 /*-------------------------------------------------------------*/
 // Node Class
 /*-------------------------------------------------------------*/
@@ -441,14 +462,6 @@ void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDi
 	}
 }
 
-void Tree3d::applyThinningByRadius(double r){
-	for (int i = 0; i < m_Points.size(); i++){
-		if (!m_pointremovedFlags[i]){
-			m_Root->removePointsInRadius(m_Points[i],m_Points, m_pointremovedFlags, r);
-		}
-	}
-}
-
 void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &flags, double radius){
 	//if leave check indices
 	if (this->isLeaf()){
@@ -488,13 +501,4 @@ void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &po
 
 }
 
-std::vector<Point3d> Tree3d::getThinnedPoints(){
-	std::vector<Point3d> thinnedPoints;
 
-	for (int i = 0; i < m_Points.size(); i++){
-		if (!m_pointremovedFlags[i])
-			thinnedPoints.push_back(m_Points[i]);
-	}
-
-	return thinnedPoints;
-}
