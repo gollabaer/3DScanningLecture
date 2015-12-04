@@ -46,7 +46,7 @@ private:
 		std::vector<int> rangeQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary); // recursively reports points in the subtree of the node inbetween the lower and upper boundary
 		bool inline pointIsInRange(int index, std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary); // test if the point defined by index is located inbetween the lower and upper boundary in every DIMension
 		void nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points); // recursivly search for the nearest neighbor of the queryPoint
-		std::vector<int> radiusQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary, Point3d &queryPoint, double &radius); // recursively reports points in the subtree of the node inside the defined sphere
+		void radiusQuery(std::vector<Point3d> &points, std::vector<int> &outIndices, Point3d &queryPoint, double &radius); // recursively reports points in the subtree of the node inside the defined sphere
 		void removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &flags, double radius);
 		bool isRemoved();
 		

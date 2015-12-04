@@ -79,10 +79,10 @@ std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
 
 std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, double radius)
 {
-	Point3d lowerBoundary = queryPoint - Point3d(radius, radius, radius);
-	Point3d upperBoundary = queryPoint + Point3d(radius, radius, radius);
+	std::vector<int> outIndices;
 
-	return this->m_Root->radiusQuery(this->m_Points, lowerBoundary, upperBoundary, queryPoint, radius);
+	this->m_Root->radiusQuery(this->m_Points, outIndices, queryPoint, radius);
+	return outIndices;
 }
 
 int Tree3d::nearestNeighbour(Point3d p)
@@ -356,50 +356,40 @@ bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, Point
 	return pointInRange;
 }
 
-std::vector<int> Tree3d::Node::radiusQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary, Point3d &queryPoint, double &radius)
+void Tree3d::Node::radiusQuery(std::vector<Point3d> &points, std::vector<int> &outIndices, Point3d &queryPoint, double &radius)
 {
-	// b ">=" a is already asserted in the radius query function!
-	std::vector<int> result;
-	result.clear();
+	
 
-	// if radius query is out of bounds, return empty vector
-	if (lowerBoundary[m_Axis] > this->m_Max || upperBoundary[m_Axis] < this->m_Min)
-	{
-		return result;
-	}
-
-	// radius queries a,b with min <= a <= median <b <= max
-
-	// check right child and add points to result
-	if (this->m_RightChild != NULL)
-	{
-		result = this->m_RightChild->radiusQuery(points, lowerBoundary, upperBoundary, queryPoint, radius);
-
-	}
-	// check left child and add points to result
-	if (this->m_LeftChild != NULL)
-	{
-		std::vector<int> resultLeft = this->m_LeftChild->radiusQuery(points, lowerBoundary, upperBoundary, queryPoint, radius);
-		// Combine results of left and right child
-		result.reserve(result.size() + resultLeft.size()); // preallocate memory
-		result.insert(result.end(), resultLeft.begin(), resultLeft.end());
-	}
-	// if the left child is NULL the node has to be a leaf, so traverse points and return fitting ones
-	else
+	if (isLeaf())// if the left child is NULL the node has to be a leaf, so traverse points and return fitting ones
 	{
 		// traverse (sorted) indices from front to back until value is bigger than median
-		for (std::vector<int>::iterator it = this->m_Indices->begin(); it != this->m_Indices->end(); ++it)
+		for (int i = 0; i < m_Indices->size(); i++)
 		{
 
 			// if point is in radius distance from query point
-			if (sqDistance3d(points[*it], queryPoint) <= radius*radius)
+			if (sqDistance3d(points[m_Indices->operator[](i)], queryPoint) <= radius*radius)
 			{
-				result.push_back(*it);
+				outIndices.push_back(m_Indices->operator[](i));
 			}
 		}
 	}
-	// return Indexlist of points in query range
-	return result;
+
+	
+	// check right child and add points to result
+	if (this->m_RightChild != NULL 
+		&& queryPoint[m_Axis] + radius >= m_Median)
+	{
+		this->m_RightChild->radiusQuery(points, outIndices, queryPoint, radius);
+
+	}
+	// check left child and add points to result
+	if (this->m_LeftChild != NULL 
+		&& queryPoint[m_Axis] - radius <=  m_Median)
+	{
+		this->m_LeftChild->radiusQuery(points, outIndices, queryPoint, radius);
+
+	}
+	
 }
 
 void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points){
