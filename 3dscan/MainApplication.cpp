@@ -5,7 +5,7 @@
 #include <QPushButton>
 #include <qfiledialog.h>
 #include <qinputdialog.h>
-
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <fstream>
@@ -21,24 +21,33 @@
 
 std::vector<Point3d> xyzFileToVec(std::string source){
 
-
-	std::vector<Point3d> vec;
-	vec.reserve(3000000);
-	std::fstream fs;
-	fs.open(source.c_str(), std::ios::in);
-	ulong c = 0;
-
-	for (std::string line; std::getline(fs, line);)
+	FILE* file = 0;
+	std::vector<Point3d> points;
+	int error = fopen_s(&file, source.c_str(), "rt"); //r= read, t=text
+	if (error != 0)
 	{
-		std::istringstream in(line);
-		double x, y, z;
-		in >> x >> y >> z;
-
-		vec.push_back(Point3d(x,y,z));
-		c++;
+		std::cout << "file " << source.c_str() << " could not be opened!" << std::endl;
+		return points; //nothing can be done else -> end function
 	}
+	std::cout << "reading file: " << source.c_str() << std::endl;
+	while (!feof(file)) //as long we have not reached the end-of-file
+	{
+		Point3d point;
+		int items = fscanf_s(file, "%lf %lf %lf\n", &point.x, &point.y, &point.z);
+		if (items != 3) //we ecpected that 3 values have been read (except we are already at the end of file)
+		{
+			std::cout << "file format error" << std::endl;
+			break; //abort while loop
+		}
+		else
+		{
+			points.push_back(point); //add the current point to our point vector
+		}
+	}
+	//dont forget to close to file
+	fclose(file);
 
-	return vec;
+	return points;
 }
 
 
@@ -464,10 +473,16 @@ void MainApplication::smoothPointCloud()
 	this->trees.push_back(Tree3d(smoothedCloud, 100));
 	
 	this->points = smoothedCloud;
+
+	for (int i = 0; i < glWidget->count; i++)
+		glWidget->colors[i] = 1.0;
+
+	glWidget->update();
 }
 
 void MainApplication::nnQuery()
 {
+	labelTime->setText(QString("---"));
 	
 	Point3d v1 = Point3d(xNeighbour->text().toDouble(), yNeighbour->text().toDouble(), zNeighbour->text().toDouble());
 
@@ -498,6 +513,8 @@ void MainApplication::nnQuery()
 
 void MainApplication::applyThinning()
 {
+	labelTime->setText(QString("---"));
+
 	double radius = rThinning->text().toDouble();
 
 	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
@@ -512,6 +529,11 @@ void MainApplication::applyThinning()
 	labelTime->setText(QString(sStream.str().c_str()));
 
 	this->points = _Tree3d.getThinnedPoints();
+
+	labelPoints->setText(QString::number(points.size()) + " points");
+
+	for (int i = 0; i < glWidget->count; i++)
+		glWidget->colors[i] = 1.0;
 
 	glWidget->update();
 }
