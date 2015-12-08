@@ -134,6 +134,16 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	zNeighbour = new QLineEdit();
 	zNeighbour->setMaximumSize(textEditSize);
 	zNeighbour->setValidator(validDouble);
+
+	rSmoothing = new QLineEdit();
+	rSmoothing->setMaximumSize(textEditSize);
+	rSmoothing->setMaximumWidth(toolBoxSubWidgetsWidth);
+	rSmoothing->setValidator(validDouble);
+
+	rThinning = new QLineEdit();
+	rThinning->setMaximumSize(textEditSize);
+	rThinning->setMaximumWidth(toolBoxSubWidgetsWidth);
+	rThinning->setValidator(validDouble);
 	
 	/*---- Tool Box and Tool Box Widgets ----*/
 	QToolBox *toolBox = new QToolBox();
@@ -201,6 +211,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	QVBoxLayout *layoutNN = new QVBoxLayout();
 	layoutNN->addWidget(NNTextEditsWidget);
 	layoutNN->addWidget(nnQueryButton);
+
 	QWidget* NNWidget = new QWidget();
 	NNWidget->setLayout(layoutNN);
 	NNWidget->setFixedWidth(toolBoxWidgetsWidth);
@@ -208,7 +219,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 
 	// Thinning
 	QVBoxLayout *layoutThinning = new QVBoxLayout();
+	layoutThinning->addWidget(rThinning);
 	layoutThinning->addWidget(thinningButton);
+	
 	QWidget* ThinningWidget = new QWidget();
 	ThinningWidget->setLayout(layoutThinning);
 	ThinningWidget->setFixedWidth(toolBoxWidgetsWidth);
@@ -216,7 +229,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 
 	// Smoothing
 	QVBoxLayout *layoutSmoothing = new QVBoxLayout();
+	layoutSmoothing->addWidget(rSmoothing);
 	layoutSmoothing->addWidget(smoothingButton);
+
 	QWidget* SmoothingWidget = new QWidget();
 	SmoothingWidget->setLayout(layoutSmoothing);
 	SmoothingWidget->setFixedWidth(toolBoxWidgetsWidth);
@@ -225,6 +240,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	// Color
 	QVBoxLayout *layoutColorByDist = new QVBoxLayout();
 	layoutColorByDist->addWidget(distanceColorMapButton);
+
 	QWidget* ColorByDistWidget = new QWidget();
 	ColorByDistWidget->setLayout(layoutColorByDist);
 	ColorByDistWidget->setFixedWidth(toolBoxWidgetsWidth);
@@ -420,16 +436,15 @@ void MainApplication::colorPointsByDistance()
 	labelTime->setText(QString(sStream.str().c_str()));
 
 	this->points = _Tree3d.getPoints();
+
+	glWidget->update();
 }
 
 void MainApplication::smoothPointCloud()
 {
 	labelTime->setText(QString("---"));
 
-	QString str = QInputDialog::getText(this, "Input radius","r");
-	if (!(str != NULL && !str.isEmpty())) return;	
-
-	double radius = str.toDouble();
+	double radius = rSmoothing->text().toDouble();
 
 	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
 
@@ -479,12 +494,7 @@ void MainApplication::nnQuery()
 
 void MainApplication::applyThinning()
 {
-	labelTime->setText(QString("---"));
-
-	QString str = QInputDialog::getText(this, "Input radius", "r");
-	if (!(str != NULL && !str.isEmpty())) return;
-
-	double radius = str.toDouble();
+	double radius = rThinning->text().toDouble();
 
 	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
 
@@ -498,4 +508,6 @@ void MainApplication::applyThinning()
 	labelTime->setText(QString(sStream.str().c_str()));
 
 	this->points = _Tree3d.getThinnedPoints();
+
+	glWidget->update();
 }

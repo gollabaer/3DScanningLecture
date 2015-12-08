@@ -40,6 +40,8 @@ private:
 	QLineEdit *xNeighbour;
 	QLineEdit *yNeighbour;
 	QLineEdit *zNeighbour;
+	QLineEdit *rSmoothing;
+	QLineEdit *rThinning;
 
 private slots:
 	void loadPoints();
