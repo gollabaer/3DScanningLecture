@@ -37,6 +37,9 @@ private:
 	QLineEdit *yRadius;
 	QLineEdit *zRadius;
 	QLineEdit *rRadius;
+	QLineEdit *xNeighbour;
+	QLineEdit *yNeighbour;
+	QLineEdit *zNeighbour;
 
 private slots:
 	void loadPoints();

@@ -98,23 +98,42 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	minXRange->setValidator(validDouble);
 	maxXRange = new QLineEdit();
 	maxXRange->setMaximumSize(textEditSize);
+	maxXRange->setValidator(validDouble);
 	minYRange = new QLineEdit();
 	minYRange->setMaximumSize(textEditSize);
+	minYRange->setValidator(validDouble);
 	maxYRange = new QLineEdit();
 	maxYRange->setMaximumSize(textEditSize);
+	maxYRange->setValidator(validDouble);
 	minZRange = new QLineEdit();
 	minZRange->setMaximumSize(textEditSize);
+	minZRange->setValidator(validDouble);
 	maxZRange = new QLineEdit();
 	maxZRange->setMaximumSize(textEditSize);
+	maxZRange->setValidator(validDouble);
 
 	xRadius = new QLineEdit();
 	xRadius->setMaximumSize(textEditSize);
+	xRadius->setValidator(validDouble);
 	yRadius = new QLineEdit();
 	yRadius->setMaximumSize(textEditSize);
+	yRadius->setValidator(validDouble);
 	zRadius = new QLineEdit();
 	zRadius->setMaximumSize(textEditSize);
+	zRadius->setValidator(validDouble);
 	rRadius = new QLineEdit();
 	rRadius->setMaximumSize(textEditSize);
+	rRadius->setValidator(validDouble);
+
+	xNeighbour = new QLineEdit();
+	xNeighbour->setMaximumSize(textEditSize);
+	xNeighbour->setValidator(validDouble);
+	yNeighbour = new QLineEdit();
+	yNeighbour->setMaximumSize(textEditSize);
+	yNeighbour->setValidator(validDouble);
+	zNeighbour = new QLineEdit();
+	zNeighbour->setMaximumSize(textEditSize);
+	zNeighbour->setValidator(validDouble);
 	
 	/*---- Tool Box and Tool Box Widgets ----*/
 	QToolBox *toolBox = new QToolBox();
@@ -170,7 +189,17 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	toolBox->addItem(RadiusWidget, "Radius Query");
 
 	// NN Query
+	QGridLayout *layoutNNTextEdits = new QGridLayout();
+	layoutNNTextEdits->addWidget(xNeighbour, 0, 0, 0);
+	layoutNNTextEdits->addWidget(yNeighbour, 0, 1, 0);
+	layoutNNTextEdits->addWidget(zNeighbour, 0, 3, 0);
+
+	QWidget* NNTextEditsWidget = new QWidget();
+	NNTextEditsWidget->setLayout(layoutNNTextEdits);
+	NNTextEditsWidget->setFixedWidth(toolBoxSubWidgetsWidth);
+
 	QVBoxLayout *layoutNN = new QVBoxLayout();
+	layoutNN->addWidget(NNTextEditsWidget);
 	layoutNN->addWidget(nnQueryButton);
 	QWidget* NNWidget = new QWidget();
 	NNWidget->setLayout(layoutNN);
@@ -314,6 +343,8 @@ void MainApplication::rangeQuery()
 		glWidget->colors[*it * 3 + 1] = 0;
 		glWidget->colors[*it * 3 + 2] = 0.2;
 	}
+
+	glWidget->update();
 }
 
 void MainApplication::radiusQuery()
@@ -345,6 +376,8 @@ void MainApplication::radiusQuery()
 		glWidget->colors[*it * 3 + 1] = 0;
 		glWidget->colors[*it * 3 + 2] = 0.2;
 	}
+
+	glWidget->update();
 }
 
 void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* outColor){
@@ -416,18 +449,8 @@ void MainApplication::smoothPointCloud()
 
 void MainApplication::nnQuery()
 {
-	labelTime->setText(QString("---"));
-
-	QString str = QInputDialog::getText(this, "Input point:", "x1 y1 z1");
-	if (!(str != NULL && !str.isEmpty()))return;
 	
-	QStringList strList = str.split(" ");
-
-	if (strList.size() != 3) return;
-	
-	labelCloudBounds->setText("Locating NN..");
-	
-	Point3d v1 = Point3d(strList.at(0).toDouble(), strList.at(1).toDouble(), strList.at(2).toDouble());
+	Point3d v1 = Point3d(xNeighbour->text().toDouble(), yNeighbour->text().toDouble(), zNeighbour->text().toDouble());
 
 	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
 
@@ -448,8 +471,8 @@ void MainApplication::nnQuery()
 	glWidget->colors[ind_NN * 3] = 0.0f;
 	glWidget->colors[ind_NN * 3 + 1] = 1.0f;
 	glWidget->colors[ind_NN * 3 + 2] = 0.0f;
-	
-	labelCloudBounds->setText("Found NN!");
+
+	glWidget->update();
 }
 
 
