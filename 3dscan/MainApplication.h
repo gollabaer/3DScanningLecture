@@ -6,6 +6,7 @@
 #include "mainglwidget.h"
 #include <qlabel.h>
 #include <list>
+#include <QLineEdit>
 
 #pragma once
 
@@ -26,6 +27,16 @@ private:
 	QLabel* labelCloudBounds;
 	QLabel* labelTime;
 	QLabel* labelPoints;
+	QLineEdit *minXRange;
+	QLineEdit *maxXRange;
+	QLineEdit *minYRange;
+	QLineEdit *maxYRange;
+	QLineEdit *minZRange;
+	QLineEdit *maxZRange;
+	QLineEdit *xRadius;
+	QLineEdit *yRadius;
+	QLineEdit *zRadius;
+	QLineEdit *rRadius;
 
 private slots:
 	void loadPoints();

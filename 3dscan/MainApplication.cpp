@@ -13,8 +13,10 @@
 #include <limits>
 #include <chrono>
 #include <math.h>
+#include <QGridLayout>
 #include <QToolBox>
 #include <QGroupBox>
+#include <QDoubleValidator>
 
 
 std::vector<Point3d> xyzFileToVec(std::string source){
@@ -29,7 +31,7 @@ std::vector<Point3d> xyzFileToVec(std::string source){
 	for (std::string line; std::getline(fs, line);)
 	{
 		std::istringstream in(line);
-		float x, y, z;
+		double x, y, z;
 		in >> x >> y >> z;
 
 		vec.push_back(Point3d(x,y,z));
@@ -44,10 +46,12 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 {
 
 	const int textSize = 12;
-	const int toolBoxWidth = 140;
-	const int toolBoxWidgetsWidth = 120;
+	const int toolBoxWidth = 160;
+	const int toolBoxWidgetsWidth = 140;
+	const int toolBoxSubWidgetsWidth = 120;
+	QSize textEditSize = QSize(40, 30);
 
-	// Buttons
+	/*---- Buttons ----*/
 	QPushButton *rangeQueryButton = new QPushButton(tr("Range"));
 	rangeQueryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
@@ -77,7 +81,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	connect(distanceColorMapButton, SIGNAL(clicked()), this, SLOT(colorPointsByDistance()));
 	connect(thinningButton, SIGNAL(clicked()), this, SLOT(applyThinning()));
 
-	// Labels 
+	/*---- Labels ----*/ 
 	labelCloudBounds = new QLabel("---", this);
 	labelCloudBounds->setMaximumHeight(60);
 
@@ -87,9 +91,35 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	labelTime = new QLabel("---", this);
 	labelTime->setMaximumHeight(60);
 
-	// Tool Box and Tool Box Widgets
+	/*---- Text Edits ----*/
+	QDoubleValidator *validDouble = new QDoubleValidator();
+	minXRange = new QLineEdit();
+	minXRange->setMaximumSize(textEditSize);
+	minXRange->setValidator(validDouble);
+	maxXRange = new QLineEdit();
+	maxXRange->setMaximumSize(textEditSize);
+	minYRange = new QLineEdit();
+	minYRange->setMaximumSize(textEditSize);
+	maxYRange = new QLineEdit();
+	maxYRange->setMaximumSize(textEditSize);
+	minZRange = new QLineEdit();
+	minZRange->setMaximumSize(textEditSize);
+	maxZRange = new QLineEdit();
+	maxZRange->setMaximumSize(textEditSize);
+
+	xRadius = new QLineEdit();
+	xRadius->setMaximumSize(textEditSize);
+	yRadius = new QLineEdit();
+	yRadius->setMaximumSize(textEditSize);
+	zRadius = new QLineEdit();
+	zRadius->setMaximumSize(textEditSize);
+	rRadius = new QLineEdit();
+	rRadius->setMaximumSize(textEditSize);
+	
+	/*---- Tool Box and Tool Box Widgets ----*/
 	QToolBox *toolBox = new QToolBox();
 
+	//Load
 	QVBoxLayout *layoutLoad = new QVBoxLayout();
 	layoutLoad->addWidget(loadButton);
 	QWidget* LoadWidget = new QWidget();
@@ -97,20 +127,49 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	LoadWidget->setFixedWidth(toolBoxWidgetsWidth);
 	toolBox->addItem(LoadWidget, "Load Data");
 	
+	// Range Query
+	QGridLayout *layoutRangeTextEdits = new QGridLayout();
+	layoutRangeTextEdits->addWidget(minXRange,0,0,0);
+	layoutRangeTextEdits->addWidget(maxXRange,0,1,0);
+	layoutRangeTextEdits->addWidget(minYRange,1,0,0);
+	layoutRangeTextEdits->addWidget(maxYRange,1,1,0);
+	layoutRangeTextEdits->addWidget(minZRange,2,0,0);
+	layoutRangeTextEdits->addWidget(maxZRange,2,1,0);
+
+	QWidget* RangeTextEditsWidget = new QWidget();
+	RangeTextEditsWidget->setLayout(layoutRangeTextEdits);
+	RangeTextEditsWidget->setFixedWidth(toolBoxSubWidgetsWidth);
+
 	QVBoxLayout *layoutRange = new QVBoxLayout();
-	layoutRange->addWidget(rangeQueryButton);
+	layoutRange->addWidget(RangeTextEditsWidget);
+	layoutRange->addWidget(rangeQueryButton);	
+
 	QWidget* RangeWidget = new QWidget();
 	RangeWidget->setLayout(layoutRange);
 	RangeWidget->setFixedWidth(toolBoxWidgetsWidth);
 	toolBox->addItem(RangeWidget, "Range Query");
 
+	// Radius Query
+	QGridLayout *layoutRadiusTextEdits = new QGridLayout();
+	layoutRadiusTextEdits->addWidget(xRadius, 0, 0, 0);
+	layoutRadiusTextEdits->addWidget(yRadius, 0, 1, 0);
+	layoutRadiusTextEdits->addWidget(zRadius, 0, 3, 0);
+	layoutRadiusTextEdits->addWidget(rRadius, 1, 1, 0);
+
+	QWidget* RadiusTextEditsWidget = new QWidget();
+	RadiusTextEditsWidget->setLayout(layoutRadiusTextEdits);
+	RadiusTextEditsWidget->setFixedWidth(toolBoxSubWidgetsWidth);
+
 	QVBoxLayout *layoutRadius = new QVBoxLayout();
+	layoutRadius->addWidget(RadiusTextEditsWidget);
 	layoutRadius->addWidget(radiusQueryButton);
+
 	QWidget* RadiusWidget = new QWidget();
 	RadiusWidget->setLayout(layoutRadius);
 	RadiusWidget->setFixedWidth(toolBoxWidgetsWidth);
 	toolBox->addItem(RadiusWidget, "Radius Query");
 
+	// NN Query
 	QVBoxLayout *layoutNN = new QVBoxLayout();
 	layoutNN->addWidget(nnQueryButton);
 	QWidget* NNWidget = new QWidget();
@@ -118,6 +177,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	NNWidget->setFixedWidth(toolBoxWidgetsWidth);
 	toolBox->addItem(NNWidget, "Nearest Neighbour");
 
+	// Thinning
 	QVBoxLayout *layoutThinning = new QVBoxLayout();
 	layoutThinning->addWidget(thinningButton);
 	QWidget* ThinningWidget = new QWidget();
@@ -125,6 +185,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	ThinningWidget->setFixedWidth(toolBoxWidgetsWidth);
 	toolBox->addItem(ThinningWidget, "Thinning");
 
+	// Smoothing
 	QVBoxLayout *layoutSmoothing = new QVBoxLayout();
 	layoutSmoothing->addWidget(smoothingButton);
 	QWidget* SmoothingWidget = new QWidget();
@@ -132,6 +193,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	SmoothingWidget->setFixedWidth(toolBoxWidgetsWidth);
 	toolBox->addItem(SmoothingWidget, "Smoothing");
 
+	// Color
 	QVBoxLayout *layoutColorByDist = new QVBoxLayout();
 	layoutColorByDist->addWidget(distanceColorMapButton);
 	QWidget* ColorByDistWidget = new QWidget();
@@ -139,14 +201,14 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	ColorByDistWidget->setFixedWidth(toolBoxWidgetsWidth);
 	toolBox->addItem(ColorByDistWidget, "Color by Distance");
 
-	// Data Group Box
+	/*---- Data Group Box ----*/
 	QGroupBox *dataBox = new QGroupBox(tr("Data"));
 	QVBoxLayout *layoutDataBox = new QVBoxLayout;
 	layoutDataBox->addWidget(labelPoints);
 	layoutDataBox->addWidget(labelCloudBounds);
 	dataBox->setLayout(layoutDataBox);
 
-	// Side Bar
+	/*---- Side Bar ----*/
 	QVBoxLayout *layoutSideBar = new QVBoxLayout();
 
 	layoutSideBar->addWidget(dataBox);
@@ -157,11 +219,11 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	sideBarWidget->setLayout(layoutSideBar);
 	sideBarWidget->setFixedWidth(toolBoxWidth);
 	
-	// Main Widget
+	/*---- Main Widget ----*/
 	glWidget = new MainGLWidget();
-	glWidget->resize(640, 380);
-	glWidget->setMinimumWidth(640);
-	glWidget->setMinimumHeight(380);
+	glWidget->resize(800, 500);
+	glWidget->setMinimumWidth(800);
+	glWidget->setMinimumHeight(500);
 
 	QHBoxLayout *layoutMain = new QHBoxLayout();
 	layoutMain->addWidget(glWidget);
@@ -227,16 +289,8 @@ void MainApplication::rangeQuery()
 {
 	labelTime->setText(QString("---"));
 
-	QString str = QInputDialog::getText(this, "Input points:", "x1 y1 z1 x2 y2 z2");
-	if (!(str != NULL && !str.isEmpty()))return;
-
-
-	QStringList strList = str.split(" ");
-
-	if (strList.size() != 6) return;
-
-	Point3d v1 = Point3d(strList.at(0).toFloat(), strList.at(1).toFloat(), strList.at(2).toFloat());
-	Point3d	v2 = Point3d(strList.at(3).toFloat(), strList.at(4).toFloat(), strList.at(5).toFloat());
+	Point3d v1 = Point3d(minXRange->text().toDouble(), minYRange->text().toDouble(), minZRange->text().toDouble());
+	Point3d	v2 = Point3d(maxXRange->text().toDouble(), maxYRange->text().toDouble(), maxZRange->text().toDouble());
 
 	std::vector<int> quvec;
 
@@ -266,15 +320,8 @@ void MainApplication::radiusQuery()
 {
 	labelTime->setText(QString("---"));
 
-	QString str = QInputDialog::getText(this, "Input point and radius:", "x y z r");
-	if (!(str != NULL && !str.isEmpty()))return;
-
-	QStringList strList = str.split(" ");
-
-	if (strList.size() != 4) return;
-
-	Point3d queryPoint = Point3d(strList.at(0).toFloat(), strList.at(1).toFloat(), strList.at(2).toFloat());
-	float radius = strList.at(3).toFloat();
+	Point3d queryPoint = Point3d(xRadius->text().toDouble(), yRadius->text().toDouble(), zRadius->text().toDouble());
+	double radius = rRadius->text().toDouble();
 
 	std::vector<int> quvec;
 
@@ -312,7 +359,7 @@ void colordistance(const std::vector<Point3d> &other,  Tree3d &tree, GLfloat* ou
 		minDist = (*it < minDist) ? *it : minDist;
 	}
 
-	float tempColor;
+	double tempColor;
 	for (int i = 0; i < distances.size(); i++){
 		tempColor = distances[i];
 		tempColor /= maxDist;
@@ -380,7 +427,7 @@ void MainApplication::nnQuery()
 	
 	labelCloudBounds->setText("Locating NN..");
 	
-	Point3d v1 = Point3d(strList.at(0).toFloat(), strList.at(1).toFloat(), strList.at(2).toFloat());
+	Point3d v1 = Point3d(strList.at(0).toDouble(), strList.at(1).toDouble(), strList.at(2).toDouble());
 
 	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
 
