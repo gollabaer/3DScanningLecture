@@ -13,6 +13,8 @@
 #include <limits>
 #include <chrono>
 #include <math.h>
+#include <QToolBox>
+#include <QGroupBox>
 
 
 std::vector<Point3d> xyzFileToVec(std::string source){
@@ -40,74 +42,130 @@ std::vector<Point3d> xyzFileToVec(std::string source){
 
 MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 {
+
 	const int textSize = 12;
+	const int toolBoxWidth = 140;
+	const int toolBoxWidgetsWidth = 120;
 
-	QPushButton *quitButton = new QPushButton(tr("Quit"));
-	quitButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
-
-	QPushButton *loadButton = new QPushButton(tr("Load"));
-	loadButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
-
-	QPushButton *rangequeryButton = new QPushButton(tr("Range"));
-	rangequeryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
+	// Buttons
+	QPushButton *rangeQueryButton = new QPushButton(tr("Range"));
+	rangeQueryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *radiusQueryButton = new QPushButton(tr("Radius"));
 	radiusQueryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
+	QPushButton *loadButton = new QPushButton(tr("Load"));
+	loadButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
+
+	QPushButton *nnQueryButton = new QPushButton(tr("NN-Query"));
+	nnQueryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
+
 	QPushButton *smoothingButton = new QPushButton(tr("Smooth"));
 	smoothingButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
-
-	QPushButton *nnqueryButton = new QPushButton(tr("NN-Query"));
-	nnqueryButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
 	QPushButton *distanceColorMapButton = new QPushButton(tr("ColorbyDist"));
 	distanceColorMapButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
-	QPushButton *thinningMapButton = new QPushButton(tr("Thinning"));
-	thinningMapButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
+	QPushButton *thinningButton = new QPushButton(tr("Thinning"));
+	thinningButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
-	glWidget = new MainGLWidget();
+	connect(loadButton, SIGNAL(clicked()), this, SLOT(loadPoints()));
+	connect(rangeQueryButton, SIGNAL(clicked()), this, SLOT(rangeQuery()));
+	connect(radiusQueryButton, SIGNAL(clicked()), this, SLOT(radiusQuery()));
+	connect(smoothingButton, SIGNAL(clicked()), this, SLOT(smoothPointCloud()));
+	connect(nnQueryButton, SIGNAL(clicked()), this, SLOT(nnQuery()));
+	connect(distanceColorMapButton, SIGNAL(clicked()), this, SLOT(colorPointsByDistance()));
+	connect(thinningButton, SIGNAL(clicked()), this, SLOT(applyThinning()));
 
+	// Labels 
 	labelCloudBounds = new QLabel("---", this);
 	labelCloudBounds->setMaximumHeight(60);
+
+	labelPoints = new QLabel("---", this);
+	labelPoints->setMaximumHeight(60);
 
 	labelTime = new QLabel("---", this);
 	labelTime->setMaximumHeight(60);
 
-	glWidget->resize(640, 380);
+	// Tool Box and Tool Box Widgets
+	QToolBox *toolBox = new QToolBox();
 
-	QHBoxLayout *layoutMain = new QHBoxLayout();
-
-	QVBoxLayout *layoutButtons = new QVBoxLayout();
-
-	connect(quitButton, SIGNAL(clicked()), this, SLOT(quit()));
-	connect(loadButton, SIGNAL(clicked()), this, SLOT(loadPoints()));
-	connect(rangequeryButton, SIGNAL(clicked()), this, SLOT(rangeQuery()));
-	connect(radiusQueryButton, SIGNAL(clicked()), this, SLOT(radiusQuery()));
-	connect(smoothingButton, SIGNAL(clicked()), this, SLOT(smoothPointCloud()));
-	connect(nnqueryButton, SIGNAL(clicked()), this, SLOT(nnQuery()));
-	connect(distanceColorMapButton, SIGNAL(clicked()), this, SLOT(colorPointsByDistance()));
-	connect(thinningMapButton, SIGNAL(clicked()), this, SLOT(applyThinning()));
-
-
-	layoutButtons->addWidget(labelCloudBounds);
-	layoutButtons->addWidget(loadButton);
-	layoutButtons->addWidget(rangequeryButton);
-	layoutButtons->addWidget(radiusQueryButton);
-	layoutButtons->addWidget(smoothingButton);
-	layoutButtons->addWidget(nnqueryButton);
-	layoutButtons->addWidget(distanceColorMapButton);
-	layoutButtons->addWidget(thinningMapButton);
-	layoutButtons->addWidget(labelTime);
+	QVBoxLayout *layoutLoad = new QVBoxLayout();
+	layoutLoad->addWidget(loadButton);
+	QWidget* LoadWidget = new QWidget();
+	LoadWidget->setLayout(layoutLoad);
+	LoadWidget->setFixedWidth(toolBoxWidgetsWidth);
+	toolBox->addItem(LoadWidget, "Load Data");
 	
+	QVBoxLayout *layoutRange = new QVBoxLayout();
+	layoutRange->addWidget(rangeQueryButton);
+	QWidget* RangeWidget = new QWidget();
+	RangeWidget->setLayout(layoutRange);
+	RangeWidget->setFixedWidth(toolBoxWidgetsWidth);
+	toolBox->addItem(RangeWidget, "Range Query");
 
-	QWidget* buttonWidget = new QWidget();
-	buttonWidget->setLayout(layoutButtons);
-	buttonWidget->setFixedWidth(140);
+	QVBoxLayout *layoutRadius = new QVBoxLayout();
+	layoutRadius->addWidget(radiusQueryButton);
+	QWidget* RadiusWidget = new QWidget();
+	RadiusWidget->setLayout(layoutRadius);
+	RadiusWidget->setFixedWidth(toolBoxWidgetsWidth);
+	toolBox->addItem(RadiusWidget, "Radius Query");
+
+	QVBoxLayout *layoutNN = new QVBoxLayout();
+	layoutNN->addWidget(nnQueryButton);
+	QWidget* NNWidget = new QWidget();
+	NNWidget->setLayout(layoutNN);
+	NNWidget->setFixedWidth(toolBoxWidgetsWidth);
+	toolBox->addItem(NNWidget, "Nearest Neighbour");
+
+	QVBoxLayout *layoutThinning = new QVBoxLayout();
+	layoutThinning->addWidget(thinningButton);
+	QWidget* ThinningWidget = new QWidget();
+	ThinningWidget->setLayout(layoutThinning);
+	ThinningWidget->setFixedWidth(toolBoxWidgetsWidth);
+	toolBox->addItem(ThinningWidget, "Thinning");
+
+	QVBoxLayout *layoutSmoothing = new QVBoxLayout();
+	layoutSmoothing->addWidget(smoothingButton);
+	QWidget* SmoothingWidget = new QWidget();
+	SmoothingWidget->setLayout(layoutSmoothing);
+	SmoothingWidget->setFixedWidth(toolBoxWidgetsWidth);
+	toolBox->addItem(SmoothingWidget, "Smoothing");
+
+	QVBoxLayout *layoutColorByDist = new QVBoxLayout();
+	layoutColorByDist->addWidget(distanceColorMapButton);
+	QWidget* ColorByDistWidget = new QWidget();
+	ColorByDistWidget->setLayout(layoutColorByDist);
+	ColorByDistWidget->setFixedWidth(toolBoxWidgetsWidth);
+	toolBox->addItem(ColorByDistWidget, "Color by Distance");
+
+	// Data Group Box
+	QGroupBox *dataBox = new QGroupBox(tr("Data"));
+	QVBoxLayout *layoutDataBox = new QVBoxLayout;
+	layoutDataBox->addWidget(labelPoints);
+	layoutDataBox->addWidget(labelCloudBounds);
+	dataBox->setLayout(layoutDataBox);
+
+	// Side Bar
+	QVBoxLayout *layoutSideBar = new QVBoxLayout();
+
+	layoutSideBar->addWidget(dataBox);
+	layoutSideBar->addWidget(toolBox);
+	layoutSideBar->addWidget(labelTime);
+	
+	QWidget* sideBarWidget = new QWidget();
+	sideBarWidget->setLayout(layoutSideBar);
+	sideBarWidget->setFixedWidth(toolBoxWidth);
+	
+	// Main Widget
+	glWidget = new MainGLWidget();
+	glWidget->resize(640, 380);
 	glWidget->setMinimumWidth(640);
 	glWidget->setMinimumHeight(380);
+
+	QHBoxLayout *layoutMain = new QHBoxLayout();
 	layoutMain->addWidget(glWidget);
-	layoutMain->addWidget(buttonWidget);
+	layoutMain->addWidget(sideBarWidget);
 
 	setLayout(layoutMain);
 }

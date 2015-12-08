@@ -25,7 +25,7 @@ private:
 	MainGLWidget * glWidget;
 	QLabel* labelCloudBounds;
 	QLabel* labelTime;
-	
+	QLabel* labelPoints;
 
 private slots:
 	void loadPoints();
