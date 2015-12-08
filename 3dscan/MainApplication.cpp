@@ -50,6 +50,8 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	const int toolBoxWidgetsWidth = 140;
 	const int toolBoxSubWidgetsWidth = 120;
 	QSize textEditSize = QSize(40, 30);
+	int windowHeight = 500;
+	int windowWidth = 800;
 
 	/*---- Buttons ----*/
 	QPushButton *rangeQueryButton = new QPushButton(tr("Range"));
@@ -266,9 +268,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	
 	/*---- Main Widget ----*/
 	glWidget = new MainGLWidget();
-	glWidget->resize(800, 500);
-	glWidget->setMinimumWidth(800);
-	glWidget->setMinimumHeight(500);
+	glWidget->resize(windowWidth, windowHeight);
+	glWidget->setMinimumWidth(windowWidth);
+	glWidget->setMinimumHeight(windowHeight);
 
 	QHBoxLayout *layoutMain = new QHBoxLayout();
 	layoutMain->addWidget(glWidget);
@@ -298,7 +300,9 @@ void MainApplication::loadPoints(){
 
 	// read points from file
 	std::string str = fstr.toStdString();
-	this->points = xyzFileToVec(str.c_str());	
+	this->points = xyzFileToVec(str.c_str());
+
+	labelPoints->setText(QString::number(points.size()) + " points");
 	
 	// set up color array and bounding box
 	this->glWidget->colors = new GLfloat[points.size() * 3];
