@@ -22,7 +22,7 @@ Tree3d::Tree3d(std::vector<Point3d> &points, int maxDepth)
 	indices->resize(points.size());
 	m_pointremovedFlags = std::vector<bool>();
 	m_pointremovedFlags.resize(points.size());
-	for (int i = 0; i < points.size(); i++)m_pointremovedFlags[i] = 0;
+	for (int i = 0; i < points.size(); i++) m_pointremovedFlags[i] = 0;
 	int tmp = 0;
 	for (std::vector<int>::iterator it = indices->begin(); it != indices->end(); ++it)
 	{
@@ -43,7 +43,7 @@ Tree3d::~Tree3d()
 
 int Tree3d::getNumberOfPoints()
 {
-	return m_Points.size() / DIM;
+	return m_Points.size();
 }
 
 std::vector<Point3d> Tree3d::getPoints()
@@ -87,14 +87,14 @@ std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, double radius)
 
 int Tree3d::nearestNeighbour(Point3d p)
 {
-	// location is not always a leaf node and has indices
-	int ind = -1;
+	// intialize index
+	int index = -1;
 
 	// use maximum double value for initialization
 	double dist = std::numeric_limits<double>::max();
 
-	m_Root->nearestNeighbour(p, dist, ind, m_Points);
-	return ind;
+	m_Root->nearestNeighbour(p, dist, index, m_Points);
+	return index;
 }
 
 std::vector<Point3d> Tree3d::applySmoothing(double radius)
@@ -102,6 +102,7 @@ std::vector<Point3d> Tree3d::applySmoothing(double radius)
 	std::vector<Point3d> smoothedCloud;
 	Point3d average = Point3d(0, 0, 0);
 
+	// for all points compute new position as average of neighbours
 	for (auto it = m_Points.begin(); it != m_Points.end(); ++it)
 	{
 		std::vector<int> neighbourIndices = radiusQuery(*it, radius);

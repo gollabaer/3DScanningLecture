@@ -496,7 +496,6 @@ void MainApplication::nnQuery()
 	sStream.precision(5);
 	sStream << t.count() << " seconds";
 	labelTime->setText(QString(sStream.str().c_str()));
-
 	
 	for (int i = 0; i < glWidget->count; i++)
 		glWidget->colors[i] = 0.3f;
