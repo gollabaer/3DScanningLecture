@@ -74,14 +74,16 @@ std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
 		}
 	}
 	// recursivly report points
-	return this->m_Root->rangeQuery(this->m_Points, lowerBoundary, upperBoundary);
+	std::vector<int> result; result.clear();
+	this->m_Root->rangeQuery(result, lowerBoundary, upperBoundary, this->m_Points);
+	return result;
 }
 
 std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, double radius)
 {
 	std::vector<int> outIndices;
 
-	this->m_Root->radiusQuery(this->m_Points, outIndices, queryPoint, radius);
+	this->m_Root->radiusQuery(outIndices, queryPoint, radius, this->m_Points);
 	return outIndices;
 }
 
@@ -93,7 +95,7 @@ int Tree3d::nearestNeighbour(Point3d p)
 	// use maximum double value for initialization
 	double dist = std::numeric_limits<double>::max();
 
-	m_Root->nearestNeighbour(p, dist, index, m_Points);
+	m_Root->nearestNeighbour(index, dist, p, m_Points);
 	return index;
 }
 
@@ -144,13 +146,14 @@ std::vector<Point3d> Tree3d::getThinnedPoints()
 	return thinnedPoints;
 }
 
-void Tree3d::applyThinningByRadius(double r)
+std::vector<Point3d> Tree3d::applyThinningByRadius(double r)
 {
 	for (int i = 0; i < m_Points.size(); i++){
 		if (!m_pointremovedFlags[i]){
-			m_Root->removePointsInRadius(m_Points[i], m_Points, m_pointremovedFlags, r);
+			m_Root->thinning(m_Points[i], m_pointremovedFlags, r, m_Points);
 		}
 	}
+	return getThinnedPoints();
 }
 
 /*-------------------------------------------------------------*/
@@ -311,16 +314,12 @@ bool Tree3d::Node::isLeaf()
 	else return false;
 }
 
-std::vector<int> Tree3d::Node::rangeQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary)
+void Tree3d::Node::rangeQuery(std::vector<int> &outIndices, Point3d &lowerBoundary, Point3d &upperBoundary, std::vector<Point3d> &points)
 {
-	// b ">=" a is already asserted in the range query function!
-	std::vector<int> result;
-	result.clear();
-
 	// if range query is out of bounds, return empty vector
 	if (lowerBoundary[m_Axis] > this->m_Max || upperBoundary[m_Axis] < this->m_Min)
 	{
-		return result;
+		return;
 	}
 
 	// range queries a,b with min <= a <= median <b <= max
@@ -328,16 +327,13 @@ std::vector<int> Tree3d::Node::rangeQuery(std::vector<Point3d> &points, Point3d 
 	// check right child and add points to result
 	if (this->m_RightChild != NULL)
 	{
-		result = this->m_RightChild->rangeQuery(points, lowerBoundary, upperBoundary);
+		this->m_RightChild->rangeQuery(outIndices, lowerBoundary, upperBoundary, points);
 
 	}
 	// check left child and add points to result
 	if (this->m_LeftChild != NULL)
 	{
-		std::vector<int> resultLeft = this->m_LeftChild->rangeQuery(points, lowerBoundary, upperBoundary);
-		// Combine results of left and right child
-		result.reserve(result.size() + resultLeft.size()); // preallocate memory
-		result.insert(result.end(), resultLeft.begin(), resultLeft.end());
+		this->m_LeftChild->rangeQuery(outIndices, lowerBoundary, upperBoundary, points);
 	}
 	// if the left child is NULL the node has to be a leaf, so traverse points and return fitting ones
 	else 
@@ -346,17 +342,15 @@ std::vector<int> Tree3d::Node::rangeQuery(std::vector<Point3d> &points, Point3d 
 		for (std::vector<int>::iterator it = this->m_Indices->begin(); it != this->m_Indices->end(); ++it)
 		{
 			// if point fits bounding box in every DIMension
-			if (pointIsInRange(*it, points, lowerBoundary, upperBoundary))
+			if (pointIsInRange(*it, lowerBoundary, upperBoundary, points))
 			{
-				result.push_back(*it);
+				outIndices.push_back(*it);
 			}
 		}
 	}
-	// return Indexlist of points in query range
-	return result;
 }
 
-bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary)
+bool Tree3d::Node::pointIsInRange(int index, Point3d &lowerBoundary, Point3d &upperBoundary, std::vector<Point3d> &points)
 {
 	bool pointInRange = true;
 	// check for each DIMension if point is inbetween lower and upper border
@@ -378,7 +372,7 @@ bool Tree3d::Node::pointIsInRange(int index, std::vector<Point3d> &points, Point
 	return pointInRange;
 }
 
-void Tree3d::Node::radiusQuery(std::vector<Point3d> &points, std::vector<int> &outIndices, Point3d &queryPoint, double &radius)
+void Tree3d::Node::radiusQuery(std::vector<int> &outIndices, Point3d &queryPoint, double &radius, std::vector<Point3d> &points)
 {
 	// if the left child is NULL the node has to be a leaf, so traverse points and return fitting ones
 	if (isLeaf())
@@ -398,20 +392,20 @@ void Tree3d::Node::radiusQuery(std::vector<Point3d> &points, std::vector<int> &o
 	if (this->m_RightChild != NULL 
 		&& queryPoint[m_Axis] + radius >= m_Median)
 	{
-		this->m_RightChild->radiusQuery(points, outIndices, queryPoint, radius);
+		this->m_RightChild->radiusQuery(outIndices, queryPoint, radius, points);
 
 	}
 	// check left child and add points to result
 	if (this->m_LeftChild != NULL 
 		&& queryPoint[m_Axis] - radius <=  m_Median)
 	{
-		this->m_LeftChild->radiusQuery(points, outIndices, queryPoint, radius);
+		this->m_LeftChild->radiusQuery(outIndices, queryPoint, radius, points);
 
 	}
 	
 }
 
-void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points)
+void Tree3d::Node::nearestNeighbour(int &index, double &currentMinimumDistance, Point3d queryPoint, std::vector<Point3d> &points)
 {
 
 	// get position of quey point on current axis
@@ -444,23 +438,23 @@ void Tree3d::Node::nearestNeighbour(Point3d queryPoint, double &currentMinimumDi
 	if (queryPointAxisValue <= m_Median)
 	{
 		if (m_LeftChild != NULL)
-			m_LeftChild->nearestNeighbour(queryPoint, currentMinimumDistance, index, points);
+			m_LeftChild->nearestNeighbour(index, currentMinimumDistance, queryPoint, points);
 
 		if (queryPointAxisValue + currentMinimumDistance > m_Median && m_RightChild != NULL)
-			m_RightChild->nearestNeighbour(queryPoint, currentMinimumDistance, index, points);
+			m_RightChild->nearestNeighbour(index, currentMinimumDistance, queryPoint, points);
 	}
 	// if node is not a leaf and bigger than median -> traverse right child
 	else
 	{
 		if (m_RightChild != NULL)
-			m_RightChild->nearestNeighbour(queryPoint, currentMinimumDistance, index, points);
+			m_RightChild->nearestNeighbour(index, currentMinimumDistance, queryPoint, points);
 
 		if (queryPointAxisValue - currentMinimumDistance < m_Median && m_LeftChild != NULL)
-			m_LeftChild->nearestNeighbour(queryPoint, currentMinimumDistance, index, points);
+			m_LeftChild->nearestNeighbour(index, currentMinimumDistance, queryPoint, points);
 	}
 }
 
-void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &pointIsRemovedFlags, double radius)
+void Tree3d::Node::thinning(Point3d &point, std::vector<bool> &pointIsRemovedFlags, double radius, std::vector<Point3d> &points)
 {
 	//if leave check indices
 	if (this->isLeaf())
@@ -490,11 +484,11 @@ void Tree3d::Node::removePointsInRadius(Point3d &point, std::vector<Point3d> &po
 		
 		if (m_LeftChild != 0 && !m_LeftChild->isRemoved() 
 			&& point[m_Axis]-radius <= m_Median ){
-			m_LeftChild->removePointsInRadius(point, points, pointIsRemovedFlags, radius);
+			m_LeftChild->thinning(point, pointIsRemovedFlags, radius, points);
 		}
 		if (m_RightChild != 0 && !m_RightChild->isRemoved()
 			&& point[m_Axis]+radius >= m_Median){
-			m_RightChild->removePointsInRadius(point, points, pointIsRemovedFlags, radius);
+			m_RightChild->thinning(point, pointIsRemovedFlags, radius, points);
 			
 		}
 		if ((m_LeftChild == 0 || m_LeftChild->isRemoved()) && (m_RightChild == 0 || m_RightChild->isRemoved()))

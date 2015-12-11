@@ -12,6 +12,7 @@ public:
 	Tree3d();
 	/**
 	Constructs a 3dimensional KD-Tree, containing the given points.
+	
 	Construction stops at given Tree depth where all points are added to the leaf.
 	*/
 	Tree3d(std::vector<Point3d> &points, int maxDepth); // makes a copy of points
@@ -54,9 +55,9 @@ public:
 	/**
 	Thins the point cloud
 
-	Marks points as removed such that the pairwise distances are larger than given distance.
+	Marks points as removed such that the pairwise distances are larger than given distance and returns a vector containing the not removed points
 	*/
-	void applyThinningByRadius(double r); ///< thins the point cloud, so that only one point remains in the given radius
+	std::vector<Point3d> applyThinningByRadius(double r); ///< thins the point cloud, so that only one point remains in the given radius
 	std::vector<Point3d> getThinnedPoints(); ///< returns all points in the tree not marked as removed
 private:
 	// Node Class
@@ -77,11 +78,11 @@ private:
 		std::vector<int> getIndices();
 		bool isLeaf();
 		// Functions
-		std::vector<int> rangeQuery(std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary); ///< recursively reports points in the subtree of the node inbetween the lower and upper boundary
-		bool inline pointIsInRange(int index, std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary); ///< test if the point defined by index is located inbetween the lower and upper boundary in every DIMension
-		void nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points); ///< recursivly search for the nearest neighbor of the queryPoint
-		void radiusQuery(std::vector<Point3d> &points, std::vector<int> &outIndices, Point3d &queryPoint, double &radius); ///< recursively reports points in the subtree of the node inside the defined sphere
-		void removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &flags, double radius); ///< marks points inside the radius query as removed
+		void rangeQuery(std::vector<int> &outIndices, Point3d &lowerBoundary, Point3d &upperBoundary, std::vector<Point3d> &points); ///< recursively reports points in the subtree of the node inbetween the lower and upper boundary
+		bool inline pointIsInRange(int index, Point3d &lowerBoundary, Point3d &upperBoundary, std::vector<Point3d> &points); ///< test if the point defined by index is located inbetween the lower and upper boundary in every DIMension
+		void nearestNeighbour(int &index, double &currentMinimumDistance, Point3d queryPoint, std::vector<Point3d> &points); ///< recursivly search for the nearest neighbor of the queryPoint
+		void radiusQuery(std::vector<int> &outIndices, Point3d &queryPoint, double &radius, std::vector<Point3d> &points); ///< recursively reports points in the subtree of the node inside the defined sphere
+		void thinning(Point3d &point, std::vector<bool> &flags, double radius, std::vector<Point3d> &points); ///< marks points inside the radius query as removed
 		bool isRemoved();
 		
 	private:
