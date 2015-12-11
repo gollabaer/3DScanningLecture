@@ -10,19 +10,54 @@ class Tree3d
 public:
 	// Constructors
 	Tree3d();
+	/**
+	Constructs a 3dimensional KD-Tree, containing the given points.
+	Construction stops at given Tree depth where all points are added to the leaf.
+	*/
 	Tree3d(std::vector<Point3d> &points, int maxDepth); // makes a copy of points
-	~Tree3d();
+	~Tree3d(); ///<Desctructor Tree3D
 	// Getter
 	int getNumberOfPoints(); ///< returns the number of points stored in the kd Tree
 	std::vector<Point3d> getPoints(); ///< returns a vector containing all stored points
 	// Functions
+	/**
+	Axis aligned  range query in the KD-Tree
+
+	Returns the indices of the points contained in the given range,	specified by 2 points spanning am axis aligned point.
+	*/
 	std::vector<int> rangeQuery(Point3d p1, Point3d p2); ///< returns the indices of all points inside the box formed by p1 and p2
+	/**
+	Sphereical query in KD-tree
+
+	Returns the indices of the points contained in the sphere,	specified by the center and radius.
+	*/
 	std::vector<int> radiusQuery(Point3d queryPoint, double radius); ///< returns the indices of all points inside the sphere at middle point with radius
+	/**
+	Nearest Neighbour query for given Point
+
+	Returns the index of the Point closest to the query point.
+	*/
 	int nearestNeighbour(Point3d p); ///< index to the nearest neighbour
+	/**
+	Smoothes the pointcloud in the KD-Tree
+
+	Returns a vector containing the smoothed points, which are smoothed by averaging the coordinates over the points in given radius.
+	*/
 	std::vector<Point3d> applySmoothing(double radius); ///< generates a smoothed pointclound by averaging the local neighbourhood
+	/**
+	Calulates the distance per point to pointcloud
+
+	Distance of a point to the point cloud is given by the distance
+	to it's nearest neighbour in the pointcloud.
+	*/
 	std::vector<double> calculateDistance(std::vector<Point3d> other); ///< calculate for each point in other the distance to the closest point in this tree
+	/**
+	Thins the point cloud
+
+	Marks points as removed such that the pairwise distances are larger than given distance.
+	*/
 	void applyThinningByRadius(double r); ///< thins the point cloud, so that only one point remains in the given radius
-	std::vector<Point3d> getThinnedPoints();
+	std::vector<Point3d> getThinnedPoints(); ///< returns all points in the tree not marked as removed
 private:
 	// Node Class
 	class Node
@@ -46,7 +81,7 @@ private:
 		bool inline pointIsInRange(int index, std::vector<Point3d> &points, Point3d &lowerBoundary, Point3d &upperBoundary); ///< test if the point defined by index is located inbetween the lower and upper boundary in every DIMension
 		void nearestNeighbour(Point3d queryPoint, double &currentMinimumDistance, int &index, std::vector<Point3d> &points); ///< recursivly search for the nearest neighbor of the queryPoint
 		void radiusQuery(std::vector<Point3d> &points, std::vector<int> &outIndices, Point3d &queryPoint, double &radius); ///< recursively reports points in the subtree of the node inside the defined sphere
-		void removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &flags, double radius);
+		void removePointsInRadius(Point3d &point, std::vector<Point3d> &points, std::vector<bool> &flags, double radius); ///< marks points inside the radius query as removed
 		bool isRemoved();
 		
 	private:
@@ -59,7 +94,7 @@ private:
 		double m_Max; ///< Maximum Value of Node's points on current axis
 		int m_Axis; ///< x = 0, y = 1, z = 2
 		std::vector<int>* m_Indices; ///< Indices of Node's points
-		bool m_removedFlag;
+		bool m_removedFlag; ///< shows if point has been removed
 	};
 	// Member Variables
 	Node* m_Root; ///< root node of the tree

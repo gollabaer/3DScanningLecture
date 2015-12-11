@@ -11,11 +11,7 @@ const int DIM = 3;
 Tree3d::Tree3d()
 {
 }
-/**
-	Constructs a 3dimensional KD-Tree, containing the given points.
-	Construction stops at given Tree depth where all points are added
-	to the leaf.
-*/
+
 Tree3d::Tree3d(std::vector<Point3d> &points, int maxDepth)
 {
 	// assign member variables 
@@ -35,9 +31,7 @@ Tree3d::Tree3d(std::vector<Point3d> &points, int maxDepth)
 	// recursivly build tree
 	m_Root = new Node(indices, m_Points, m_MaxDepth, NULL);
 }
-/**
-	Desctructor Tree3D
-*/
+
 Tree3d::~Tree3d()
 {
 	// delete this->m_Root;
@@ -47,13 +41,11 @@ Tree3d::~Tree3d()
 // Getters
 /*-------------------------------------------------------------*/
 
-///Returns Numeber of Points 
 int Tree3d::getNumberOfPoints()
 {
 	return m_Points.size();
 }
 
-///Returns all Points
 std::vector<Point3d> Tree3d::getPoints()
 {
 	return m_Points;
@@ -63,12 +55,6 @@ std::vector<Point3d> Tree3d::getPoints()
 // Functions
 /*-------------------------------------------------------------*/
 
-/**
-	Axis aligned  range query in the KD-Tree
-
-	Returns the indices of the points contained in the given range,
-	specified by 2 points spanning am axis aligned point.
-*/
 std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
 {
 	// assign lower and upper boundary of range query for each DIMension (0,1,2,...)
@@ -90,12 +76,7 @@ std::vector<int> Tree3d::rangeQuery(Point3d p1, Point3d p2)
 	// recursivly report points
 	return this->m_Root->rangeQuery(this->m_Points, lowerBoundary, upperBoundary);
 }
-/**
-	Sphereical query in KD-tree
 
-	Returns the indices of the points contained in the sphere,
-	specified by the center and radius.
-*/
 std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, double radius)
 {
 	std::vector<int> outIndices;
@@ -104,11 +85,6 @@ std::vector<int> Tree3d::radiusQuery(Point3d queryPoint, double radius)
 	return outIndices;
 }
 
-/**
-	Nearest Neighbour query for given Point
-
-	Returns the index of the Point closest to the query point.
-*/
 int Tree3d::nearestNeighbour(Point3d p)
 {
 	// intialize index
@@ -120,12 +96,7 @@ int Tree3d::nearestNeighbour(Point3d p)
 	m_Root->nearestNeighbour(p, dist, index, m_Points);
 	return index;
 }
-/**
-	Smoothes the pointcloud in the KD-Tree
 
-	Returns a vector containing the smoothed points,
-	which are smoothed by averaging the coordinates over the points in given radius.
-*/
 std::vector<Point3d> Tree3d::applySmoothing(double radius)
 {
 	std::vector<Point3d> smoothedCloud;
@@ -149,12 +120,6 @@ std::vector<Point3d> Tree3d::applySmoothing(double radius)
 	return smoothedCloud;
 }
 
-/**
-	Calulates the distance per point to pointcloud
-
-	Distance of a point to the point cloud is given by the distance
-	to it's nearest neighbour in the pointcloud.
-*/
 std::vector<double> Tree3d::calculateDistance(std::vector<Point3d> other)
 {
 	std::vector<double> distances;
@@ -167,9 +132,6 @@ std::vector<double> Tree3d::calculateDistance(std::vector<Point3d> other)
 	return distances;
 }
 
-/**
-	Returns all points in the tree not marked as removed
-*/
 std::vector<Point3d> Tree3d::getThinnedPoints()
 {
 	std::vector<Point3d> thinnedPoints;
@@ -181,11 +143,7 @@ std::vector<Point3d> Tree3d::getThinnedPoints()
 
 	return thinnedPoints;
 }
-/**
-	Thins the point cloud
 
-	Marks points as removed such that the pairwise distances are larger than given distance.
-*/
 void Tree3d::applyThinningByRadius(double r)
 {
 	for (int i = 0; i < m_Points.size(); i++){

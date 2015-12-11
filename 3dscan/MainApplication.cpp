@@ -8,10 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <fstream>
-#include <sstream>
 #include <limits>
-#include <chrono>
 #include <math.h>
 #include <QGridLayout>
 #include <QToolBox>
@@ -298,7 +295,7 @@ void MainApplication::loadPoints(){
 	labelCloudBounds->setText("Loading...");
 	labelTime->setText(QString("---"));
 
-	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> t1 = std::chrono::high_resolution_clock::now(); //start timer
 
 	QString fstr = QFileDialog::getOpenFileName(this, tr("Open File"), "c:/", tr("Point Files (*.xyz)"));
 	
@@ -313,10 +310,7 @@ void MainApplication::loadPoints(){
 
 	labelPoints->setText(QString::number(points.size()) + " points");
 	
-	// set up color array and bounding box
-	this->glWidget->colors = new GLfloat[points.size() * 3];
-	for (int i = 0; i < points.size() * 3; i++)
-		this->glWidget->colors[i] = (1.0f);
+	// Bounding Box
 	std::vector<float> bbox = this->glWidget->cam.init(points, 640, 380);
 
 	std::stringstream sStream;
@@ -329,16 +323,15 @@ void MainApplication::loadPoints(){
 	this->glWidget->m_vertices = &(this->points);
 	this->glWidget->count = points.size() * 3;
 
+	// set up color array 
+	this->glWidget->colors = new GLfloat[points.size() * 3];
+	setColor(1.0);
+
 	// build up the kd-Tree
 	labelCloudBounds->setText("Building Tree3d...");
 	this->_Tree3d = Tree3d(points, 100);
 
-	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
-	std::chrono::duration<double> t = t2 - t1;
-	std::stringstream tStream;
-	tStream.precision(5);
-	tStream << t.count() << " seconds";
-	labelTime->setText(QString(tStream.str().c_str()));
+	stopTimer(t1);
 
 	labelCloudBounds->setText(QString(boundingBoxDimensions.c_str()));
 }
@@ -349,29 +342,14 @@ void MainApplication::rangeQuery()
 
 	Point3d v1 = Point3d(minXRange->text().toDouble(), minYRange->text().toDouble(), minZRange->text().toDouble());
 	Point3d	v2 = Point3d(maxXRange->text().toDouble(), maxYRange->text().toDouble(), maxZRange->text().toDouble());
-
 	std::vector<int> quvec;
-
-	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> t1 = std::chrono::high_resolution_clock::now(); //start timer
 	
 	quvec = _Tree3d.rangeQuery(v1, v2);
 
-	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
-	std::chrono::duration<double> t = t2 - t1;
-	std::stringstream sStream;
-	sStream.precision(5);
-	sStream  << t.count() << " seconds";
-	labelTime->setText(QString(sStream.str().c_str()));
-
-	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 0.3f;
-
-	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
-	{
-		glWidget->colors[*it * 3] = 0.9;
-		glWidget->colors[*it * 3 + 1] = 0;
-		glWidget->colors[*it * 3 + 2] = 0.2;
-	}
+	stopTimer(t1);
+	setColor(0.3);
+	setColor(quvec.begin(), quvec.end(), 0.9, 0, 0.2);
 
 	glWidget->update();
 }
@@ -384,27 +362,13 @@ void MainApplication::radiusQuery()
 	double radius = rRadius->text().toDouble();
 
 	std::vector<int> quvec;
-
-	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> t1 = std::chrono::high_resolution_clock::now(); //start timer
 
 	quvec = _Tree3d.radiusQuery(queryPoint, radius);
 
-	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
-	std::chrono::duration<double> t = t2 - t1;
-	std::stringstream sStream;
-	sStream.precision(5);
-	sStream << t.count() << " seconds";
-	labelTime->setText(QString(sStream.str().c_str()));
-
-	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 0.3;
-
-	for (std::vector<int>::iterator it = quvec.begin(); it != quvec.end(); ++it)
-	{
-		glWidget->colors[*it * 3] = 0.9;
-		glWidget->colors[*it * 3 + 1] = 0;
-		glWidget->colors[*it * 3 + 2] = 0.2;
-	}
+	stopTimer(t1);
+	setColor(0.3);
+	setColor(quvec.begin(), quvec.end(), 0.9, 0, 0.2);
 
 	glWidget->update();
 }
@@ -437,17 +401,11 @@ void MainApplication::colorPointsByDistance()
 {
 	labelTime->setText(QString("---"));
 
-	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> t1 = std::chrono::high_resolution_clock::now(); //start timer
 
 	colordistance(this->_Tree3d.getPoints(), this->trees.front(), this->glWidget->colors);
 
-	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
-	std::chrono::duration<double> t = t2 - t1;
-	std::stringstream sStream;
-	sStream.precision(5);
-	sStream << t.count() << " seconds";
-	labelTime->setText(QString(sStream.str().c_str()));
-
+	stopTimer(t1);
 	this->points = _Tree3d.getPoints();
 
 	glWidget->update();
@@ -458,24 +416,14 @@ void MainApplication::smoothPointCloud()
 	labelTime->setText(QString("---"));
 
 	double radius = rSmoothing->text().toDouble();
-
-	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> t1 = std::chrono::high_resolution_clock::now(); //start timer
 
 	std::vector<Point3d> smoothedCloud = _Tree3d.applySmoothing(radius);
 
-	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
-	std::chrono::duration<double> t = t2 - t1;
-	std::stringstream sStream;
-	sStream.precision(5);
-	sStream << t.count() << " seconds";
-	labelTime->setText(QString(sStream.str().c_str()));
-
+	stopTimer(t1);
 	this->trees.push_back(Tree3d(smoothedCloud, 100));
-	
 	this->points = smoothedCloud;
-
-	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 1.0;
+	setColor(1.0);
 
 	glWidget->update();
 }
@@ -483,27 +431,15 @@ void MainApplication::smoothPointCloud()
 void MainApplication::nnQuery()
 {
 	labelTime->setText(QString("---"));
-	
-	Point3d v1 = Point3d(xNeighbour->text().toDouble(), yNeighbour->text().toDouble(), zNeighbour->text().toDouble());
 
-	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+	Point3d v1 = Point3d(xNeighbour->text().toDouble(), yNeighbour->text().toDouble(), zNeighbour->text().toDouble());
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> t1 = std::chrono::high_resolution_clock::now(); //start timer
 
 	int ind_NN = _Tree3d.nearestNeighbour(v1);
 
-	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
-	std::chrono::duration<double> t = t2 - t1;
-	std::stringstream sStream;
-	sStream.precision(5);
-	sStream << t.count() << " seconds";
-	labelTime->setText(QString(sStream.str().c_str()));
-	
-	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 0.3f;
-
-
-	glWidget->colors[ind_NN * 3] = 0.0f;
-	glWidget->colors[ind_NN * 3 + 1] = 1.0f;
-	glWidget->colors[ind_NN * 3 + 2] = 0.0f;
+	stopTimer(t1);
+	setColor(0.3);
+	setColor(ind_NN, 0, 1.0, 0);
 
 	glWidget->update();
 }
@@ -515,24 +451,16 @@ void MainApplication::applyThinning()
 	labelTime->setText(QString("---"));
 
 	double radius = rThinning->text().toDouble();
-
-	auto t1 = std::chrono::high_resolution_clock::now(); //start timer
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> t1 = std::chrono::high_resolution_clock::now(); //start timer
 
 	_Tree3d.applyThinningByRadius(radius);
 
-	auto t2 = std::chrono::high_resolution_clock::now(); // stop timer
-	std::chrono::duration<double> t = t2 - t1;
-	std::stringstream sStream;
-	sStream.precision(5);
-	sStream << t.count() << " seconds";
-	labelTime->setText(QString(sStream.str().c_str()));
-
+	stopTimer(t1);
 	this->points = _Tree3d.getThinnedPoints();
-
 	labelPoints->setText(QString::number(points.size()) + " points");
-
-	for (int i = 0; i < glWidget->count; i++)
-		glWidget->colors[i] = 1.0;
+	setColor(1.0);
 
 	glWidget->update();
 }
+
+
