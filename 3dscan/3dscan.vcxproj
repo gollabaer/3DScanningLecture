@@ -76,6 +76,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Algorithms.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_MainApplication.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -95,6 +96,7 @@
     <ClCompile Include="GeneratedFiles\Release\moc_mainglwidget.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="SVD.cpp" />
     <ClCompile Include="Tree3d.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainApplication.cpp" />
@@ -115,8 +117,11 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Algorithms.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h" />
+    <ClInclude Include="Matrix.h" />
+    <ClInclude Include="SVD.h" />
     <ClInclude Include="Tree3d.h" />
     <CustomBuild Include="MainApplication.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

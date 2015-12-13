@@ -4,6 +4,7 @@
 #include "Point3d.h"
 #include <vector>
 #include "mainglwidget.h"
+#include "Matrix.h"
 #include <qlabel.h>
 #include <list>
 #include <QLineEdit>
@@ -31,6 +32,7 @@ private:
 	QLabel* labelCloudBounds;
 	QLabel* labelTime;
 	QLabel* labelPoints;
+	QLabel* labelFitting;
 	QLineEdit *minXRange;
 	QLineEdit *maxXRange;
 	QLineEdit *minYRange;
@@ -55,6 +57,8 @@ private slots:
 	void nnQuery();
 	void colorPointsByDistance();
 	void applyThinning();
+	void fitLine();
+	void fitPlane();
 	
 	inline void setColor(float color)
 	{

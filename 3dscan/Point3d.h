@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <sstream>
 
 //the following #-syntax at the begin AND end of this file is an "include guard". 
 //It ensures that the compiler include/uses this file only once (if it used multiple times)
@@ -34,6 +35,13 @@ struct Point3d
   Point3d& operator *= (double scalar);     // *= multiplication with a scalar (pt1*= s  -> pt1 = pt1 * s)
   Point3d& operator /= (double scalar);		// /= elementwise division by a scalar
   double &operator [] (int index);     // acces element by index, 0,1,2
+
+  inline std::string toString()
+  {
+	  std::stringstream ss; 
+	  ss << x << "," << std::endl << y << "," << std::endl << z << std::endl;
+	  return ss.str();
+  }
 
   double x,y,z;
 };

@@ -1,4 +1,5 @@
 #include "MainApplication.h"
+#include "Algorithms.h"
 
 #include <QSlider>
 #include <QVBoxLayout>
@@ -14,6 +15,7 @@
 #include <QToolBox>
 #include <QGroupBox>
 #include <QDoubleValidator>
+#include <assert.h>
 
 
 std::vector<Point3d> xyzFileToVec(std::string source){
@@ -81,6 +83,12 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	QPushButton *thinningButton = new QPushButton(tr("Thinning"));
 	thinningButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
+	QPushButton *lineFittingButton = new QPushButton(tr("fit Line"));
+	lineFittingButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
+
+	QPushButton *planeFittingButton = new QPushButton(tr("fit Plane"));
+	planeFittingButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
+
 	connect(loadButton, SIGNAL(clicked()), this, SLOT(loadPoints()));
 	connect(rangeQueryButton, SIGNAL(clicked()), this, SLOT(rangeQuery()));
 	connect(radiusQueryButton, SIGNAL(clicked()), this, SLOT(radiusQuery()));
@@ -88,6 +96,8 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	connect(nnQueryButton, SIGNAL(clicked()), this, SLOT(nnQuery()));
 	connect(distanceColorMapButton, SIGNAL(clicked()), this, SLOT(colorPointsByDistance()));
 	connect(thinningButton, SIGNAL(clicked()), this, SLOT(applyThinning()));
+	connect(lineFittingButton, SIGNAL(clicked()), this, SLOT(fitLine()));
+	connect(planeFittingButton, SIGNAL(clicked()), this, SLOT(fitPlane()));
 
 	/*---- Labels ----*/ 
 	labelCloudBounds = new QLabel("---", this);
@@ -98,6 +108,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 
 	labelTime = new QLabel("---", this);
 	labelTime->setMaximumHeight(60);
+
+	labelFitting = new QLabel("p: dir:", this);
+	labelFitting->setMaximumHeight(120);
 
 	/*---- Text Edits ----*/
 	QDoubleValidator *validDouble = new QDoubleValidator();
@@ -244,6 +257,17 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	SmoothingWidget->setLayout(layoutSmoothing);
 	SmoothingWidget->setFixedWidth(toolBoxWidgetsWidth);
 	toolBox->addItem(SmoothingWidget, "Smoothing");
+
+	// Fitting
+	QVBoxLayout *layoutFitting = new QVBoxLayout();
+	layoutFitting->addWidget(labelFitting);
+	layoutFitting->addWidget(planeFittingButton);
+	layoutFitting->addWidget(lineFittingButton);
+
+	QWidget* FittingWidget = new QWidget();
+	FittingWidget->setLayout(layoutFitting);
+	FittingWidget->setFixedWidth(toolBoxWidgetsWidth);
+	toolBox->addItem(FittingWidget, "Fitting");
 
 	// Color
 	QVBoxLayout *layoutColorByDist = new QVBoxLayout();
@@ -445,7 +469,6 @@ void MainApplication::nnQuery()
 }
 
 
-
 void MainApplication::applyThinning()
 {
 	labelTime->setText(QString("---"));
@@ -463,4 +486,22 @@ void MainApplication::applyThinning()
 	glWidget->update();
 }
 
+void MainApplication::fitLine()
+{
+	Point3d p;
+	Point3d dir;
+	algorithms::fitLine(this->_Tree3d.getPoints(), p, dir);
+	std::stringstream ss;
+	ss << "p: " << p.toString() << std::endl << "dir: " << dir.toString();
+	labelFitting->setText(QString::fromStdString(ss.str()));
+}
 
+void MainApplication::fitPlane()
+{
+	Point3d p;
+	Point3d norm;
+	algorithms::fitPlane(this->_Tree3d.getPoints(), p, norm);
+	std::stringstream ss;
+	ss << "p: " << p.toString() << " norm: " << norm.toString();
+	labelFitting->setText(QString::fromStdString(ss.str()));
+}
