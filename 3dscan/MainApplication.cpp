@@ -490,7 +490,8 @@ void MainApplication::fitLine()
 {
 	Point3d p;
 	Point3d dir;
-	algorithms::fitLine(this->_Tree3d.getPoints(), p, dir);
+	std::vector<Point3d> boundaries = std::vector<Point3d>();
+	algorithms::fitLine(this->_Tree3d.getPoints(), p, dir, &boundaries);
 	std::stringstream ss;
 	ss << "p: " << p.toString() << std::endl << "dir: " << dir.toString();
 	labelFitting->setText(QString::fromStdString(ss.str()));
@@ -500,7 +501,8 @@ void MainApplication::fitPlane()
 {
 	Point3d p;
 	Point3d norm;
-	algorithms::fitPlane(this->_Tree3d.getPoints(), p, norm);
+	std::vector<Point3d> boundaries = std::vector<Point3d>();
+	algorithms::fitPlane(this->_Tree3d.getPoints(), p, norm, &boundaries);
 	std::stringstream ss;
 	ss << "p: " << p.toString() << " norm: " << norm.toString();
 	labelFitting->setText(QString::fromStdString(ss.str()));

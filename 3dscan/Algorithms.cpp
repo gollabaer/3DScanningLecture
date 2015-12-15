@@ -60,7 +60,7 @@ namespace algorithms
 	  M(2, 0) = M(0, 2); M(2, 1) = M(1, 2); M(2, 2) = Mzz / N;
 	}
 
-	void fitLine(const std::vector<Point3d>& points, Point3d& pointOnLine, Point3d& lineDirection)
+	void fitLine(const std::vector<Point3d>& points, Point3d& pointOnLine, Point3d& lineDirection, std::vector<Point3d>* boundaries)
 	{
 		pointOnLine = computeCenter(points);
 		Matrix M;
@@ -68,9 +68,24 @@ namespace algorithms
 		SVD::computeSymmetricEigenvectors(M);
 
 		lineDirection =  Point3d(M(0, 0), M(1, 0), M(2, 0)); //first column of M == Eigenvector corresponding to the largest Eigenvalue == direction of biggest variance
+
+		if (boundaries != nullptr)
+		{
+			double minDist = 0;
+			double maxDist = 0;
+
+			for (auto it = points.begin(); it != points.end(); ++it)
+			{
+				double dist = distancePt2Plane(*it, pointOnLine, lineDirection);
+				maxDist = (dist > maxDist) ? dist : maxDist;
+				minDist = (dist < minDist) ? dist : minDist;
+			}
+			boundaries->push_back(pointOnLine + lineDirection * minDist);
+			boundaries->push_back(pointOnLine + lineDirection * maxDist);
+		}
 	}
 
-	void fitPlane(const std::vector<Point3d>& points, Point3d& pointOnPlane, Point3d& planeNormal)
+	void fitPlane(const std::vector<Point3d>& points, Point3d& pointOnPlane, Point3d& planeNormal, std::vector<Point3d>* boundaries)
 	{
 		pointOnPlane = computeCenter(points);
 		Matrix M;
@@ -78,6 +93,34 @@ namespace algorithms
 		SVD::computeSymmetricEigenvectors(M);
 
 		planeNormal = Point3d(M(0, 2), M(1, 2), M(2, 2)); //third column of M == Eigenvector corresponding to the smallest Eigenvalue == direction of lowest variance
+		if (boundaries != nullptr)
+		{
+			// use the other eigenvectors as coordinate axis on the plane
+			Point3d dir1 = Point3d(M(0, 0), M(1, 0), M(2, 0));
+			Point3d dir2 = Point3d(M(0, 1), M(1, 1), M(2, 1));
+			double maxDist1 = 0;
+			double minDist1 = 0;
+			double maxDist2 = 0;
+			double minDist2 = 0;
+
+			// calculate the signed distances of each point to the "helper-planes" orthogonal to the axis on the plane and find the points furthest away on both sides 
+			for (auto it = points.begin(); it != points.end(); ++it)
+			{
+				double dist1 = distancePt2Plane(*it, pointOnPlane, dir1);
+				double dist2 = distancePt2Plane(*it, pointOnPlane, dir2);
+				
+				maxDist1 = (dist1 > maxDist1) ? dist1 : maxDist1;
+				maxDist2 = (dist2 > maxDist2) ? dist2 : maxDist2;
+				minDist1 = (dist1 < minDist1) ? dist1 : minDist1;
+				minDist2 = (dist2 < minDist2) ? dist2 : minDist2;
+			}
+
+			// calculate the corner points based on the furthest distances calculated in the previous step
+			boundaries->push_back(pointOnPlane + (dir1 * minDist1) + (dir2 * minDist2));
+			boundaries->push_back(pointOnPlane + (dir1 * minDist1) + (dir2 * maxDist2));
+			boundaries->push_back(pointOnPlane + (dir1 * maxDist1) + (dir2 * minDist2));
+			boundaries->push_back(pointOnPlane + (dir1 * maxDist1) + (dir2 * maxDist2));
+		}
 	}
 
 	/** @brief Computes the distance of a point to a 3D line.
