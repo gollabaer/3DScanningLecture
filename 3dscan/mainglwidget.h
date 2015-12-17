@@ -25,6 +25,11 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		GLfloat* colors;
 		std::vector<Point3d>* m_vertices;
 
+		void enableFittedPlaneDraw();
+		void enableFittedLineDraw();
+		bool isFittedPlaneEnabled() { return drawFittedPlane; }
+		bool isFittedLineEnabled(){ return drawFittedLine; }
+
 	protected:
 		void initializeGL() Q_DECL_OVERRIDE;
 		void paintGL() Q_DECL_OVERRIDE;
@@ -45,6 +50,10 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		GLuint m_posAttr;
 		GLuint m_colAttr;
 		GLuint m_matrixUniform;
+
+		// TODO find better solution
+		bool drawFittedPlane;
+		bool drawFittedLine;
 };
 
 #endif // MAINGL_WIDGET_H

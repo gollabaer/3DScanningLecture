@@ -492,6 +492,10 @@ void MainApplication::fitLine()
 	Point3d dir;
 	std::vector<Point3d> boundaries = std::vector<Point3d>();
 	algorithms::fitLine(this->_Tree3d.getPoints(), p, dir, &boundaries);
+
+	this->glWidget->enableFittedLineDraw();
+	this->glWidget->m_vertices->insert(glWidget->m_vertices->end(), boundaries.begin(), boundaries.end());
+
 	std::stringstream ss;
 	ss << "p: " << p.toString() << std::endl << "dir: " << dir.toString();
 	labelFitting->setText(QString::fromStdString(ss.str()));
@@ -503,6 +507,15 @@ void MainApplication::fitPlane()
 	Point3d norm;
 	std::vector<Point3d> boundaries = std::vector<Point3d>();
 	algorithms::fitPlane(this->_Tree3d.getPoints(), p, norm, &boundaries);
+	
+	// remove old plane
+	/*if (this->glWidget->isFittedPlaneEnabled())
+	{
+		this->glWidget->m_vertices->erase(this->glWidget->m_vertices->rbegin(), this->glWidget->m_vertices->rbegin() + 4);
+	}*/
+	this->glWidget->enableFittedPlaneDraw();
+	this->glWidget->m_vertices->insert(glWidget->m_vertices->end(), boundaries.begin(), boundaries.end());
+
 	std::stringstream ss;
 	ss << "p: " << p.toString() << " norm: " << norm.toString();
 	labelFitting->setText(QString::fromStdString(ss.str()));

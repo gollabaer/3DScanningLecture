@@ -28,6 +28,8 @@ MainGLWidget::MainGLWidget(QWidget *parent)
 	, m_vertices(nullptr)
 	, colors(nullptr)
 	, count(0)
+	, drawFittedLine(false)
+	, drawFittedPlane(false)
 {
 
 }
@@ -71,13 +73,24 @@ void MainGLWidget::paintGL() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
-	glDrawArrays(GL_POINTS, 0, m_vertices->size());
+	
+	if (drawFittedLine)
+	{
+		//glDrawArrays(GL_POINTS, 0, m_vertices->size()-2);
+		glDrawArrays(GL_LINES, m_vertices->size()-2 , 2);
+	}
+	else if (drawFittedPlane)
+	{
+		//glDrawArrays(GL_POINTS, 0, m_vertices->size() - 4);
+		glDrawArrays(GL_QUADS, m_vertices->size() - 4, 4);
+	}
+	else
+	{
+		glDrawArrays(GL_POINTS, 0, m_vertices->size());
+	}
 
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
-
-
-	m_program->release();
 
 }
 void MainGLWidget::resizeGL(int width, int height) {
@@ -122,6 +135,18 @@ void MainGLWidget::wheelEvent(QWheelEvent *event) {
 	cam.incVFov(vertical_angle / -3);
 	update();
 	event->accept();
+}
+
+void MainGLWidget::enableFittedPlaneDraw()
+{
+	this->drawFittedPlane = true;
+	this->drawFittedLine = false;
+}
+
+void MainGLWidget::enableFittedLineDraw()
+{
+	this->drawFittedLine = true;
+	this->drawFittedPlane = false;
 }
 
 	
