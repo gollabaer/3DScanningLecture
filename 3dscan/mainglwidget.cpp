@@ -28,6 +28,12 @@ MainGLWidget::MainGLWidget(QWidget *parent)
 	, m_vertices(nullptr)
 	, colors(nullptr)
 	, count(0)
+	, m_vvboPointCloud(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))
+	, m_cvboPointCloud(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))
+	, m_vvboLine(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))
+	, m_cvboLine(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))
+	, m_vvboPlane(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))
+	, m_cvboPlane(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))
 {
 
 }
@@ -46,6 +52,21 @@ void MainGLWidget::initializeGL(){
 	m_posAttr = m_program->attributeLocation("posAttr");
 	m_colAttr = m_program->attributeLocation("colAttr");
 	m_matrixUniform = m_program->uniformLocation("matrix");
+
+	// create VBOs for positondata
+	m_vvboPointCloud.create();
+	m_vvboLine.create();
+	m_vvboPlane.create();
+
+	// create VBOs for Colordata
+	m_cvboPointCloud.create();
+	m_cvboLine.create();
+	m_cvboPlane.create();
+
+	// create VAOs
+	m_vaoPointcloud.create();
+	m_vaoLine.create();
+	m_vaoPlane.create();
 }
 
 
@@ -65,16 +86,21 @@ void MainGLWidget::paintGL() {
 	m_program->setUniformValue(m_matrixUniform, matrix);
 
 
-	glVertexAttribPointer(m_posAttr, 3, GL_DOUBLE, GL_FALSE, sizeof(Point3d), &(m_vertices->operator[](0)));
+	/*glVertexAttribPointer(m_posAttr, 3, GL_DOUBLE, GL_FALSE, sizeof(Point3d), &(m_vertices->operator[](0)));
 	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(m_posAttr);
+	glEnableVertexAttribArray(m_colAttr);
 
 	glDrawArrays(GL_POINTS, 0, m_vertices->size());
 
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(m_posAttr);
+	glDisableVertexAttribArray(m_colAttr);*/
+
+	m_vaoPointcloud.bind();
+
+	glDrawArrays(GL_POINTS, 0, m_vertices->size());
+	m_vaoPointcloud.release();
 
 
 	m_program->release();
@@ -124,4 +150,37 @@ void MainGLWidget::wheelEvent(QWheelEvent *event) {
 	event->accept();
 }
 
+void MainGLWidget::setPointCloud(std::vector<Point3d>* cloudPoints)
+{
+	m_vertices = cloudPoints;
+	m_vaoPointcloud.bind(); //sets the Vertex Array Object current to the OpenGL context so we can write attributes to it
 	
+	// set VertexData
+	m_vvboPointCloud.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	m_vvboPointCloud.bind();
+	m_vvboPointCloud.allocate(&(m_vertices->operator[](0)), m_vertices->size() * sizeof(Point3d));
+	glEnableVertexAttribArray(m_posAttr);
+	glVertexAttribPointer(m_posAttr, 3, GL_DOUBLE, GL_FALSE, sizeof(Point3d), &(m_vertices->operator[](0))/*change to 0?*/);
+	
+	// set ColorData
+	m_cvboPointCloud.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	m_cvboPointCloud.bind();
+	m_cvboPointCloud.allocate(colors, count * sizeof(GLfloat));
+	glEnableVertexAttribArray(m_colAttr);
+	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors/*change to 0?*/);
+
+	// unbind Buffer and array objects
+	m_vvboPointCloud.release();
+	m_cvboPointCloud.release();
+	m_vaoPointcloud.release();
+}
+
+void MainGLWidget::setLine(const std::vector<Point3d>& linePoints)
+{
+
+}
+
+void MainGLWidget::setPLane(const std::vector<Point3d>& planePoints)
+{
+
+}

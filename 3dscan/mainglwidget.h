@@ -23,7 +23,13 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		Camera cam;
 		uint count;
 		GLfloat* colors;
-		std::vector<Point3d>* m_vertices;
+
+		/// set the vertices of the Pointcloud to be displayed
+		void setPointCloud(std::vector<Point3d>* cloudPoints);
+		/// set the vertices of the (fitted) Line to be displayed
+		void setLine(const std::vector<Point3d>& linePoints);
+		/// set the vertices of the (fitted) Plane to be displayed
+		void setPLane(const std::vector<Point3d>& planePoints);
 
 	protected:
 		void initializeGL() Q_DECL_OVERRIDE;
@@ -35,7 +41,15 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
 
 	private:
-		QOpenGLVertexArrayObject m_vao;
+		QOpenGLVertexArrayObject m_vaoPointcloud;
+		QOpenGLBuffer m_vvboPointCloud;
+		QOpenGLBuffer m_cvboPointCloud;
+		QOpenGLVertexArrayObject m_vaoLine;
+		QOpenGLBuffer m_vvboLine;
+		QOpenGLBuffer m_cvboLine;
+		QOpenGLVertexArrayObject m_vaoPlane;
+		QOpenGLBuffer m_vvboPlane;
+		QOpenGLBuffer m_cvboPlane;
 		QOpenGLBuffer m_glBuffer;
 		QOpenGLShaderProgram *m_program;
 		QMatrix4x4 m_proj;
@@ -45,6 +59,9 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		GLuint m_posAttr;
 		GLuint m_colAttr;
 		GLuint m_matrixUniform;
+		std::vector<Point3d> m_lineVertices;
+		std::vector<Point3d> m_planeVertices;
+		std::vector<Point3d>* m_vertices;
 };
 
 #endif // MAINGL_WIDGET_H

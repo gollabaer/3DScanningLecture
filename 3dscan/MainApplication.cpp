@@ -343,13 +343,13 @@ void MainApplication::loadPoints(){
 
 	std::string boundingBoxDimensions = sStream.str();
 
-	// hand pointers to vertex data to glWidget
-	this->glWidget->m_vertices = &(this->points);
-	this->glWidget->count = points.size() * 3;
-
 	// set up color array 
 	this->glWidget->colors = new GLfloat[points.size() * 3];
 	setColor(1.0);
+
+	this->glWidget->count = points.size() * 3;
+	// hand pointers to vertex data to glWidget
+	this->glWidget->setPointCloud( &(this->points));
 
 	// build up the kd-Tree
 	labelCloudBounds->setText("Building Tree3d...");
