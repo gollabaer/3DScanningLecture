@@ -70,8 +70,8 @@ void MainGLWidget::paintGL() {
 	glVertexAttribPointer(m_posAttr, 3, GL_DOUBLE, GL_FALSE, sizeof(Point3d), &(m_vertices->operator[](0)));
 	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(m_posAttr);
+	glEnableVertexAttribArray(m_colAttr);
 
 	
 	if (drawFittedLine)
