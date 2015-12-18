@@ -80,8 +80,8 @@ namespace algorithms
 				maxDist = (dist > maxDist) ? dist : maxDist;
 				minDist = (dist < minDist) ? dist : minDist;
 			}
-			boundaries->push_back(pointOnLine + lineDirection * minDist);
-			boundaries->push_back(pointOnLine + lineDirection * maxDist);
+			boundaries->push_back(pointOnLine + lineDirection * -1*minDist);
+			boundaries->push_back(pointOnLine + lineDirection * -1*maxDist);
 		}
 	}
 
@@ -116,10 +116,10 @@ namespace algorithms
 			}
 
 			// calculate the corner points based on the furthest distances calculated in the previous step
-			boundaries->push_back(pointOnPlane + (dir1 * minDist1) + (dir2 * minDist2)); //a
-			boundaries->push_back(pointOnPlane + (dir1 * minDist1) + (dir2 * maxDist2)); //b
-			boundaries->push_back(pointOnPlane + (dir1 * maxDist1) + (dir2 * maxDist2)); //c
-			boundaries->push_back(pointOnPlane + (dir1 * maxDist1) + (dir2 * minDist2)); //d
+			boundaries->push_back(pointOnPlane + (dir1 * -1 * minDist1) + (dir2 * -1 * minDist2)); //a
+			boundaries->push_back(pointOnPlane + (dir1 * -1 * minDist1) + (dir2 * -1 * maxDist2)); //b
+			boundaries->push_back(pointOnPlane + (dir1 * -1 * maxDist1) + (dir2 * -1 * maxDist2)); //c
+			boundaries->push_back(pointOnPlane + (dir1 * -1 * maxDist1) + (dir2 * -1 * minDist2)); //d
 		}
 	}
 

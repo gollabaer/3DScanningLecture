@@ -86,7 +86,7 @@ void MainGLWidget::paintGL() {
 	{
 		drawLine();
 	}
-	else if (drawFittedPlane)
+	if (drawFittedPlane)
 	{
 		drawPlane();
 	}
@@ -149,8 +149,10 @@ void MainGLWidget::setFittedLine(Point3d a, Point3d b)
 
 void MainGLWidget::drawLine()
 {
+	glColor3f(0, 1, 0);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(cam.getModelMatrix().data());
+	QMatrix4x4 modelView = cam.getViewMatrix() * cam.getModelMatrix();
+	glLoadMatrixf(modelView.data());
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(cam.getProjMatrix().data());
 
