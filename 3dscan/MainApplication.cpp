@@ -16,6 +16,7 @@
 #include <QGroupBox>
 #include <QDoubleValidator>
 #include <assert.h>
+#include <limits>  // std::numeric_limits
 
 
 std::vector<Point3d> xyzFileToVec(std::string source){
