@@ -11,7 +11,49 @@
 #include "Point3d.h"
 #include "Camera.h"
 
+namespace Primitives
+{
+	struct Quad
+	{
+		Point3d a;
+		Point3d b;
+		Point3d c;
+		Point3d d;
 
+		Quad()
+		{
+			this->a = Point3d();
+			this->b = Point3d();
+			this->c = Point3d();
+			this->d = Point3d();
+		}
+		Quad(Point3d A, Point3d B, Point3d C, Point3d D)
+		{
+			this->a = A;
+			this->b = B;
+			this->c = C;
+			this->d = D;
+		}
+	};
+
+	struct Line
+	{
+		Point3d a;
+		Point3d b;
+
+		Line()
+		{
+			this->a = Point3d();
+			this->b = Point3d();
+		}
+
+		Line(Point3d a, Point3d b)
+		{
+			this->a = a;
+			this->b = b;
+		}
+	};
+}
 
 class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -25,10 +67,8 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		GLfloat* colors;
 		std::vector<Point3d>* m_vertices;
 
-		void enableFittedPlaneDraw();
-		void enableFittedLineDraw();
-		bool isFittedPlaneEnabled() { return drawFittedPlane; }
-		bool isFittedLineEnabled(){ return drawFittedLine; }
+		void setFittedPlane(Point3d a, Point3d b, Point3d c, Point3d d);
+		void setFittedLine(Point3d a, Point3d b);
 
 	protected:
 		void initializeGL() Q_DECL_OVERRIDE;
@@ -38,6 +78,9 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 		void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
 		void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
+
+		void drawPlane();
+		void drawLine();
 
 	private:
 		QOpenGLVertexArrayObject m_vao;
@@ -54,6 +97,8 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		// TODO find better solution
 		bool drawFittedPlane;
 		bool drawFittedLine;
+		Primitives::Quad fittedPlane;
+		Primitives::Line fittedLine;
 };
 
 #endif // MAINGL_WIDGET_H

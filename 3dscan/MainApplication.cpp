@@ -493,8 +493,7 @@ void MainApplication::fitLine()
 	std::vector<Point3d> boundaries = std::vector<Point3d>();
 	algorithms::fitLine(this->_Tree3d.getPoints(), p, dir, &boundaries);
 
-	this->glWidget->enableFittedLineDraw();
-	this->glWidget->m_vertices->insert(glWidget->m_vertices->end(), boundaries.begin(), boundaries.end());
+	this->glWidget->setFittedLine(boundaries[0], boundaries[1]);
 
 	std::stringstream ss;
 	ss << "p: " << p.toString() << std::endl << "dir: " << dir.toString();
@@ -508,13 +507,7 @@ void MainApplication::fitPlane()
 	std::vector<Point3d> boundaries = std::vector<Point3d>();
 	algorithms::fitPlane(this->_Tree3d.getPoints(), p, norm, &boundaries);
 	
-	// remove old plane
-	/*if (this->glWidget->isFittedPlaneEnabled())
-	{
-		this->glWidget->m_vertices->erase(this->glWidget->m_vertices->rbegin(), this->glWidget->m_vertices->rbegin() + 4);
-	}*/
-	this->glWidget->enableFittedPlaneDraw();
-	this->glWidget->m_vertices->insert(glWidget->m_vertices->end(), boundaries.begin(), boundaries.end());
+	this->glWidget->setFittedPlane(boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
 
 	std::stringstream ss;
 	ss << "p: " << p.toString() << " norm: " << norm.toString();

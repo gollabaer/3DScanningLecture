@@ -58,7 +58,8 @@ void MainGLWidget::paintGL() {
 	glViewport(0, 0, width(), height());
 
 	// clear background
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 
 	m_program->bind();
 
@@ -74,23 +75,21 @@ void MainGLWidget::paintGL() {
 	glEnableVertexAttribArray(m_colAttr);
 
 	
-	if (drawFittedLine)
-	{
-		//glDrawArrays(GL_POINTS, 0, m_vertices->size()-2);
-		glDrawArrays(GL_LINES, m_vertices->size()-2 , 2);
-	}
-	else if (drawFittedPlane)
-	{
-		//glDrawArrays(GL_POINTS, 0, m_vertices->size() - 4);
-		glDrawArrays(GL_QUADS, m_vertices->size() - 4, 4);
-	}
-	else
-	{
-		glDrawArrays(GL_POINTS, 0, m_vertices->size());
-	}
+	glDrawArrays(GL_POINTS, 0, m_vertices->size());
 
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
+
+	m_program->release();
+
+	if (drawFittedLine)
+	{
+		drawLine();
+	}
+	else if (drawFittedPlane)
+	{
+		drawPlane();
+	}
 
 }
 void MainGLWidget::resizeGL(int width, int height) {
@@ -137,16 +136,44 @@ void MainGLWidget::wheelEvent(QWheelEvent *event) {
 	event->accept();
 }
 
-void MainGLWidget::enableFittedPlaneDraw()
+void MainGLWidget::setFittedPlane(Point3d a, Point3d b, Point3d c, Point3d d)
 {
-	this->drawFittedPlane = true;
-	this->drawFittedLine = false;
+	drawFittedPlane = true;
+	this->fittedPlane = Primitives::Quad(a, b, c, d);
+}
+void MainGLWidget::setFittedLine(Point3d a, Point3d b)
+{
+	drawFittedLine = true;
+	this->fittedLine = Primitives::Line(a, b);
 }
 
-void MainGLWidget::enableFittedLineDraw()
+void MainGLWidget::drawLine()
 {
-	this->drawFittedLine = true;
-	this->drawFittedPlane = false;
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(cam.getModelMatrix().data());
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(cam.getProjMatrix().data());
+
+	glBegin(GL_LINES);
+	glVertex3d(fittedLine.a.x, fittedLine.a.y, fittedLine.a.z);
+	glVertex3d(fittedLine.b.x, fittedLine.b.y, fittedLine.b.z);
+	glEnd();
 }
 
-	
+void MainGLWidget::drawPlane()
+{
+	glColor3f(1, 0, 0);
+	glMatrixMode(GL_MODELVIEW);
+	QMatrix4x4 modelView = cam.getModelMatrix() * cam.getViewMatrix();
+	glLoadMatrixf(modelView.data());
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(cam.getProjMatrix().data());
+
+	glBegin(GL_QUADS);
+	glVertex3d(fittedPlane.a.x, fittedPlane.a.y, fittedPlane.a.z);
+	glVertex3d(fittedPlane.b.x, fittedPlane.b.y, fittedPlane.b.z);
+	glVertex3d(fittedPlane.c.x, fittedPlane.c.y, fittedPlane.c.z);
+	glVertex3d(fittedPlane.d.x, fittedPlane.d.y, fittedPlane.d.z);
+	glEnd();
+		
+}
