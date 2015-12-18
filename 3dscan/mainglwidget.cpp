@@ -164,7 +164,7 @@ void MainGLWidget::drawPlane()
 {
 	glColor3f(1, 0, 0);
 	glMatrixMode(GL_MODELVIEW);
-	QMatrix4x4 modelView = cam.getModelMatrix() * cam.getViewMatrix();
+	QMatrix4x4 modelView = cam.getViewMatrix() * cam.getModelMatrix();
 	glLoadMatrixf(modelView.data());
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(cam.getProjMatrix().data());
