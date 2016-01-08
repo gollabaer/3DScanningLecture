@@ -171,10 +171,14 @@ void MainGLWidget::drawPlane()
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(cam.getProjMatrix().data());
 
-	glBegin(GL_QUADS);
+	glBegin(GL_LINE_STRIP);
 	glVertex3d(fittedPlane.a.x, fittedPlane.a.y, fittedPlane.a.z);
 	glVertex3d(fittedPlane.b.x, fittedPlane.b.y, fittedPlane.b.z);
 	glVertex3d(fittedPlane.c.x, fittedPlane.c.y, fittedPlane.c.z);
+	glVertex3d(fittedPlane.d.x, fittedPlane.d.y, fittedPlane.d.z);
+	glVertex3d(fittedPlane.a.x, fittedPlane.a.y, fittedPlane.a.z);
+	glVertex3d(fittedPlane.c.x, fittedPlane.c.y, fittedPlane.c.z);
+	glVertex3d(fittedPlane.b.x, fittedPlane.b.y, fittedPlane.b.z);
 	glVertex3d(fittedPlane.d.x, fittedPlane.d.y, fittedPlane.d.z);
 	glEnd();
 		
