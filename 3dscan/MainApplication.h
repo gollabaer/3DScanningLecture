@@ -59,6 +59,7 @@ private slots:
 	void applyThinning();
 	void fitLine();
 	void fitPlane();
+	void fitSphere();
 	
 	inline void setColor(float color)
 	{

@@ -4,6 +4,7 @@
 #include <limits>
 #include <vector>
 #include "Matrix.h"
+#include <cmath>
 
 /** @brief In this namespace the singular value decomposition is implemented.
 */
@@ -11,6 +12,8 @@ namespace SVD
 {
   void decomposeMatrix (Matrix& U, std::vector<double>& S, Matrix& V);  ///< computes the SV decomposition
   void computeSymmetricEigenvectors(Matrix& U); ///< computes the Eigenvectors for a symmetric square Matrix with SVD
+  void solveLinearEquationSystem(Matrix& A, std::vector<double>& x, const std::vector<double>& b);
+
 
   /** @brief returns the square of a value.
       @param v  values
@@ -25,9 +28,9 @@ namespace SVD
   */
   inline double hypotenuse(const double& v1, const double& v2)
   {
-    const double a(abs(v1)), b(abs(v2));
-    return (a > b ? a*sqrt(1.0 + sqr(b / a)) :
-                    (b == 0.0 ? 0.0 : b*sqrt(1.0 + sqr(a / b))));
+    const double a(std::abs(v1)), b(std::abs(v2));
+    return (a > b ? a*std::sqrt(1.0 + sqr(b / a)) :
+                    (b == 0.0 ? 0.0 : b*std::sqrt(1.0 + sqr(a / b))));
   }
 };
 

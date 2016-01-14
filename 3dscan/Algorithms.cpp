@@ -123,6 +123,63 @@ namespace algorithms
 		}
 	}
 
+	void fitSphere(const std::vector<Point3d>& points, Point3d& center, double& radius)
+	{
+		// compute initial guess
+
+		// compute the initial center
+		center.x = 0;
+		center.y = 0;
+		center.z = 0;
+
+		radius = 0;
+
+		for (size_t i = 0; i < points.size(); ++i)
+		{
+			center += points[i];
+		}
+		center *= 1.0 / points.size();
+
+		// compute the initial radius
+		for (size_t i = 0; i < points.size(); ++i)
+		{
+			double d = distance3d(points[i], center);
+			radius += d;
+		}
+		radius *= (1.0 / points.size());
+
+		Matrix J(points.size(), 4);
+		std::vector<double> D(points.size()), X(4);
+		const size_t MaxIterations = 100;
+		size_t it = 0;
+		for (it; it < MaxIterations; ++it)
+		{
+			for (size_t i = 0; i < points.size(); ++i)
+			{
+				double vectorLength = distance3d(points[i], center);
+
+				double JR = -1.0;
+				double JXo = -(points[i].x - center.x) / vectorLength;
+				double JYo = -(points[i].y - center.y) / vectorLength;
+				double JZo = -(points[i].z - center.z) / vectorLength;
+
+				J(i, 0) = JR; J(i, 1) = JXo; J(i, 2) = JYo; J(i, 3) = JZo;
+				D[i] = -(vectorLength - radius);
+			}
+			SVD::solveLinearEquationSystem(J, X, D);
+			radius += X[0];
+			center.x += X[1];
+			center.y += X[2];
+			center.z += X[3];
+
+			double updateLength = std::sqrt(X[0] * X[0] + X[1] * X[1] + X[2] * X[2] + X[3] * X[3]);
+			if (updateLength < 1.0e-6)
+			{
+				break;
+			}
+		}
+	}
+
 	/** @brief Computes the distance of a point to a 3D line.
 		@param point         point 
 		@param pointOnLine   a point on the line (e.g. "center" point)
