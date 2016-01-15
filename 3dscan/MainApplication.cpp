@@ -526,6 +526,8 @@ void MainApplication::fitSphere()
 	double radius;
 	algorithms::fitSphere(this->_Tree3d.getPoints(), center, radius);
 
+	this->glWidget->setFittedSphere(center, radius);
+
 	std::stringstream ss;
 	ss << "center: " << center.toString() << " radius: " << radius;
 	labelFitting->setText(QString::fromStdString(ss.str()));

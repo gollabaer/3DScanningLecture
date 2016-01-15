@@ -10,6 +10,7 @@
 #include <qopenglshaderprogram.h>
 #include "Point3d.h"
 #include "Camera.h"
+#include <gl/GLU.h>
 
 namespace Primitives
 {
@@ -53,6 +54,23 @@ namespace Primitives
 			this->b = b;
 		}
 	};
+
+	struct Sphere
+	{
+		Point3d p;
+		double r;
+
+		Sphere()
+		{
+			this->p = Point3d();
+			this->r = double();
+		}
+		Sphere(Point3d P, double R)
+		{
+			this->p = P;
+			this->r = R;
+		}
+	};
 }
 
 class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -69,6 +87,7 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 
 		void setFittedPlane(Point3d a, Point3d b, Point3d c, Point3d d);
 		void setFittedLine(Point3d a, Point3d b);
+		void setFittedSphere(Point3d p, double r);
 
 	protected:
 		void initializeGL() Q_DECL_OVERRIDE;
@@ -81,6 +100,7 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 
 		void drawPlane();
 		void drawLine();
+		void drawSphere();
 
 	private:
 		QOpenGLVertexArrayObject m_vao;
@@ -97,8 +117,10 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		// TODO find better solution
 		bool drawFittedPlane;
 		bool drawFittedLine;
+		bool drawFittedSphere;
 		Primitives::Quad fittedPlane;
 		Primitives::Line fittedLine;
+		Primitives::Sphere fittedSphere;
 };
 
 #endif // MAINGL_WIDGET_H

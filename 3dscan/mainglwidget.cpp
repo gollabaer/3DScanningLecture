@@ -90,6 +90,10 @@ void MainGLWidget::paintGL() {
 	{
 		drawPlane();
 	}
+	if (drawFittedSphere)
+	{
+		drawSphere();
+	}
 
 }
 void MainGLWidget::resizeGL(int width, int height) {
@@ -146,6 +150,11 @@ void MainGLWidget::setFittedLine(Point3d a, Point3d b)
 	drawFittedLine = true;
 	this->fittedLine = Primitives::Line(a, b);
 }
+void MainGLWidget::setFittedSphere(Point3d p, double r)
+{
+	drawFittedSphere = true;
+	this->fittedSphere = Primitives::Sphere(p, r);
+}
 
 void MainGLWidget::drawLine()
 {
@@ -182,4 +191,24 @@ void MainGLWidget::drawPlane()
 	glVertex3d(fittedPlane.d.x, fittedPlane.d.y, fittedPlane.d.z);
 	glEnd();
 		
+}
+
+void MainGLWidget::drawSphere()
+{
+	glColor3f(0, 0, 1);
+	glMatrixMode(GL_MODELVIEW);
+	QMatrix4x4 modelView = cam.getViewMatrix() * cam.getModelMatrix();
+	glLoadMatrixf(modelView.data());
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(cam.getProjMatrix().data());
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glTranslated(this->fittedSphere.p.x, this->fittedSphere.p.y, this->fittedSphere.p.z);
+	
+	GLUquadric* quad = gluNewQuadric();
+	gluSphere(quad, this->fittedSphere.r , 30, 30);
+	gluDeleteQuadric(quad);
+
+	glPopMatrix();
 }
