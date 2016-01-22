@@ -16,6 +16,7 @@
 #include <QGroupBox>
 #include <QDoubleValidator>
 #include <assert.h>
+#include <limits>  // std::numeric_limits
 
 
 std::vector<Point3d> xyzFileToVec(std::string source){
@@ -89,6 +90,9 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	QPushButton *planeFittingButton = new QPushButton(tr("fit Plane"));
 	planeFittingButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
 
+	QPushButton *sphereFittingButton = new QPushButton(tr("fit Sphere"));
+	sphereFittingButton->setFont(QFont("Times", textSize, QFont::AnyStyle));
+
 	connect(loadButton, SIGNAL(clicked()), this, SLOT(loadPoints()));
 	connect(rangeQueryButton, SIGNAL(clicked()), this, SLOT(rangeQuery()));
 	connect(radiusQueryButton, SIGNAL(clicked()), this, SLOT(radiusQuery()));
@@ -98,6 +102,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	connect(thinningButton, SIGNAL(clicked()), this, SLOT(applyThinning()));
 	connect(lineFittingButton, SIGNAL(clicked()), this, SLOT(fitLine()));
 	connect(planeFittingButton, SIGNAL(clicked()), this, SLOT(fitPlane()));
+	connect(sphereFittingButton, SIGNAL(clicked()), this, SLOT(fitSphere()));
 
 	/*---- Labels ----*/ 
 	labelCloudBounds = new QLabel("---", this);
@@ -263,6 +268,7 @@ MainApplication::MainApplication(QWidget *parent) : QWidget(parent)
 	layoutFitting->addWidget(labelFitting);
 	layoutFitting->addWidget(planeFittingButton);
 	layoutFitting->addWidget(lineFittingButton);
+	layoutFitting->addWidget(sphereFittingButton);
 
 	QWidget* FittingWidget = new QWidget();
 	FittingWidget->setLayout(layoutFitting);
@@ -492,6 +498,9 @@ void MainApplication::fitLine()
 	Point3d dir;
 	std::vector<Point3d> boundaries = std::vector<Point3d>();
 	algorithms::fitLine(this->_Tree3d.getPoints(), p, dir, &boundaries);
+
+	this->glWidget->setFittedLine(boundaries[0], boundaries[1]);
+
 	std::stringstream ss;
 	ss << "p: " << p.toString() << std::endl << "dir: " << dir.toString();
 	labelFitting->setText(QString::fromStdString(ss.str()));
@@ -503,7 +512,23 @@ void MainApplication::fitPlane()
 	Point3d norm;
 	std::vector<Point3d> boundaries = std::vector<Point3d>();
 	algorithms::fitPlane(this->_Tree3d.getPoints(), p, norm, &boundaries);
+	
+	this->glWidget->setFittedPlane(boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
+
 	std::stringstream ss;
 	ss << "p: " << p.toString() << " norm: " << norm.toString();
+	labelFitting->setText(QString::fromStdString(ss.str()));
+}
+
+void MainApplication::fitSphere()
+{
+	Point3d center;
+	double radius;
+	algorithms::fitSphere(this->_Tree3d.getPoints(), center, radius);
+
+	this->glWidget->setFittedSphere(center, radius);
+
+	std::stringstream ss;
+	ss << "center: " << center.toString() << " radius: " << radius;
 	labelFitting->setText(QString::fromStdString(ss.str()));
 }

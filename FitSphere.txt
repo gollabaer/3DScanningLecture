@@ -1,0 +1,59 @@
+void computbestfitsphere(const std::vector<Point3d>& points)
+{
+ 	// compute initial guess
+
+	// compute center
+	Point3d center(0,0,0);
+	double radius = 0;
+
+	for (size_t i = 0; i<point.size(); ++i)
+	{
+		center += points[i];	
+	}
+	center *= 1.0/points.size();
+
+	for (size_t i=0; i< points.size(), ++i)
+	{
+		double d = distance3d(points[i],center);
+		radius += d;	
+	}
+
+	// compute radius
+	radius *= 1.0 /points.size();
+
+	Matrix J(points.size(),4);
+	std::vector<double> D(points.size()), X(4);
+
+	const size_t MaxIterations = 100;
+
+	for (size_t i=0; i< MaxIterations , ++i)
+	{
+
+		for (size_t i=0; i< points.size(), ++i)
+		{
+			double vectorLength = distance3d(points[i],center);
+	
+			double Jr = -1.0;
+			double JXo = (points[i].x()-center.x())/vectorLength;
+			double JYo = (points[i].y()-center.y())/vectorLength;
+			double JZo = (points[i].z()-center.z())/vectorLength;
+	
+			J(i,0)=Jr;
+			J(i,1)=JXo;
+			J(i,2)=JYo;
+			J(i,3)=JZo;
+			D[i]=-(vectorLength-radius);
+		}
+
+	SVD::solveLinearEquationSystem(J,X,D);
+	radius += X[0];
+	center.x() += X[1];
+	center.y() += X[2];
+	center.z() += X[3];
+
+	const double updateLength = std::sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2] + X[3]*X[3]);
+	if (updateLength < 1.0e-6) break;
+
+	//output
+	}
+}

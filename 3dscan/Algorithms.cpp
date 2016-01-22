@@ -80,8 +80,8 @@ namespace algorithms
 				maxDist = (dist > maxDist) ? dist : maxDist;
 				minDist = (dist < minDist) ? dist : minDist;
 			}
-			boundaries->push_back(pointOnLine + lineDirection * minDist);
-			boundaries->push_back(pointOnLine + lineDirection * maxDist);
+			boundaries->push_back(pointOnLine + lineDirection * -1*minDist);
+			boundaries->push_back(pointOnLine + lineDirection * -1*maxDist);
 		}
 	}
 
@@ -98,10 +98,10 @@ namespace algorithms
 			// use the other eigenvectors as coordinate axis on the plane
 			Point3d dir1 = Point3d(M(0, 0), M(1, 0), M(2, 0));
 			Point3d dir2 = Point3d(M(0, 1), M(1, 1), M(2, 1));
-			double maxDist1 = 0;
-			double minDist1 = 0;
-			double maxDist2 = 0;
-			double minDist2 = 0;
+			double maxDist1 = -std::numeric_limits<double>::max();
+			double minDist1 = std::numeric_limits<double>::max();
+			double maxDist2 = -std::numeric_limits<double>::max();
+			double minDist2 = std::numeric_limits<double>::max();
 
 			// calculate the signed distances of each point to the "helper-planes" orthogonal to the axis on the plane and find the points furthest away on both sides 
 			for (auto it = points.begin(); it != points.end(); ++it)
@@ -116,10 +116,67 @@ namespace algorithms
 			}
 
 			// calculate the corner points based on the furthest distances calculated in the previous step
-			boundaries->push_back(pointOnPlane + (dir1 * minDist1) + (dir2 * minDist2));
-			boundaries->push_back(pointOnPlane + (dir1 * minDist1) + (dir2 * maxDist2));
-			boundaries->push_back(pointOnPlane + (dir1 * maxDist1) + (dir2 * minDist2));
-			boundaries->push_back(pointOnPlane + (dir1 * maxDist1) + (dir2 * maxDist2));
+			boundaries->push_back(pointOnPlane + (dir1 * -1 * minDist1) + (dir2 * -1 * minDist2)); //a
+			boundaries->push_back(pointOnPlane + (dir1 * -1 * minDist1) + (dir2 * -1 * maxDist2)); //b
+			boundaries->push_back(pointOnPlane + (dir1 * -1 * maxDist1) + (dir2 * -1 * maxDist2)); //c
+			boundaries->push_back(pointOnPlane + (dir1 * -1 * maxDist1) + (dir2 * -1 * minDist2)); //d
+		}
+	}
+
+	void fitSphere(const std::vector<Point3d>& points, Point3d& center, double& radius)
+	{
+		// compute initial guess
+
+		// compute the initial center
+		center.x = 0;
+		center.y = 0;
+		center.z = 0;
+
+		radius = 0;
+
+		for (size_t i = 0; i < points.size(); ++i)
+		{
+			center += points[i];
+		}
+		center *= 1.0 / points.size();
+
+		// compute the initial radius
+		for (size_t i = 0; i < points.size(); ++i)
+		{
+			double d = distance3d(points[i], center);
+			radius += d;
+		}
+		radius *= (1.0 / points.size());
+
+		Matrix J(points.size(), 4);
+		std::vector<double> D(points.size()), X(4);
+		const size_t MaxIterations = 100;
+		size_t it = 0;
+		for (it; it < MaxIterations; ++it)
+		{
+			for (size_t i = 0; i < points.size(); ++i)
+			{
+				double vectorLength = distance3d(points[i], center);
+
+				double JR = -1.0;
+				double JXo = -(points[i].x - center.x) / vectorLength;
+				double JYo = -(points[i].y - center.y) / vectorLength;
+				double JZo = -(points[i].z - center.z) / vectorLength;
+
+				J(i, 0) = JR; J(i, 1) = JXo; J(i, 2) = JYo; J(i, 3) = JZo;
+				D[i] = -(vectorLength - radius);
+			}
+			SVD::solveLinearEquationSystem(J, X, D);
+			radius += X[0];
+			center.x += X[1];
+			center.y += X[2];
+			center.z += X[3];
+
+			double updateLength = std::sqrt(X[0] * X[0] + X[1] * X[1] + X[2] * X[2] + X[3] * X[3]);
+			if (updateLength < 1.0e-6)
+			{
+				break;
+			}
 		}
 	}
 

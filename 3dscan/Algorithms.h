@@ -24,6 +24,13 @@ namespace algorithms
 	*/
 	void fitPlane(const std::vector<Point3d>& points, Point3d& pointOnPlane, Point3d& planeNormal, std::vector<Point3d>* boundaries = nullptr);
 
+	/** @brief Computes the best fitting sphere using nonlinear least squares.
+	@param points       pointcloud to fit sphere into
+	@param [out] center the center of the fitted sphere
+	@param [out] radius	the radius of the fitted sphere
+	*/
+	void fitSphere(const std::vector<Point3d>& points, Point3d& center, double& radius);
+
 	double distancePt2Line(const Point3d& point, const Point3d& pointOnLine, const Point3d& lineDirection);  ///< distance point-to-line (3d)
 	double distancePt2Plane(const Point3d& point, const Point3d& pointOnPlane, const Point3d& planeDirection);  ///< distance point-to-plane
 
