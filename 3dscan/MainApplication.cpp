@@ -348,9 +348,14 @@ void MainApplication::loadPoints(){
 	sStream << bbox[0] << ":" << bbox[18] << "\n" << bbox[1] << ":" << bbox[19] << "\n" << bbox[2] << ":" << bbox[20];
 
 	std::string boundingBoxDimensions = sStream.str();
+	std::vector<Point3d> normals;
+	double normalRadius = 0.001;
+	this->_Tree3d.computeNormals(normalRadius, normals);
+
 
 	// hand pointers to vertex data to glWidget
 	this->glWidget->m_vertices = &(this->points);
+	this->glWidget->m_normals = &normals;
 	this->glWidget->count = points.size() * 3;
 
 	// set up color array 

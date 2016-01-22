@@ -84,6 +84,7 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		uint count;
 		GLfloat* colors;
 		std::vector<Point3d>* m_vertices;
+		std::vector<Point3d>* m_normals;
 
 		void setFittedPlane(Point3d a, Point3d b, Point3d c, Point3d d);
 		void setFittedLine(Point3d a, Point3d b);
@@ -111,6 +112,7 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		QMatrix4x4 m_world;
 		QPointF oldMousePosition;
 		GLuint m_posAttr;
+		GLuint m_normalAttr;
 		GLuint m_colAttr;
 		GLuint m_modelViewUniform;
 		GLuint m_normalUniform;

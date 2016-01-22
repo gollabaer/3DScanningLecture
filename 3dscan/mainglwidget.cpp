@@ -24,7 +24,7 @@ static const char *fragmentShaderSource =
 "varying highp vec4 nromal;\n"
 "varying highp vec4 vertex;\n"
 "void main() {\n"
-"	//our own definitions\n"
+/*"	//our own definitions\n"
 "	vec3 lightPosition = vec3(1.0, 1.0, 1.0);         //in normalized coordinates (1,1,1). I want the light coming diagonal from the back\n"
 "	vec4 ambientColor = vec4(0.1, 0.1, 0.1, 1.0);   //ambient (surrounding) color is quite dark \n"
 "	//vec4 diffuseColor=vec4(0.4, 0.4, 0.4, 1.0); //you might give the diffuse light a certain fixed color, but I want to take the color that we define outside by glColor (transferred from Vertex shader using \"varying\" variable FrontColor)\n"
@@ -51,7 +51,8 @@ static const char *fragmentShaderSource =
 "	vec4 Ispec = specularColor * pow(max(dot(R, E), 0.0), 0.03* shininess);\n"
 "	Ispec = clamp(Ispec, 0.0, 1.0);\n"
 "\n"
-"	gl_FragColor = Iamb + Idiff + Ispec; //gl_FragColor is the color that the fragment (aka pixel) on the screen is assigned to. In the Phong model its the sum of ambient,diffuse and specular reflection terms\n"
+"	gl_FragColor = Iamb + Idiff + Ispec; //gl_FragColor is the color that the fragment (aka pixel) on the screen is assigned to. In the Phong model its the sum of ambient,diffuse and specular reflection terms\n"*/
+"gl_FragColor = vec3(1,1,1);\n"
 "}";
 
 
@@ -62,6 +63,7 @@ MainGLWidget::MainGLWidget(QWidget *parent)
 	, cam(Camera())
 	, oldMousePosition(-1, -1)
 	, m_vertices(nullptr)
+	, m_normals(nullptr)
 	, colors(nullptr)
 	, count(0)
 	, drawFittedLine(false)
@@ -82,6 +84,7 @@ void MainGLWidget::initializeGL(){
 	m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
 	m_program->link();
 	m_posAttr = m_program->attributeLocation("posAttr");
+	m_normalAttr = m_program->attributeLocation("normAttr");
 	m_colAttr = m_program->attributeLocation("colAttr");
 	m_modelViewUniform = m_program->uniformLocation("modelView");
 	m_projectionUniform = m_program->uniformLocation("projection");
@@ -109,11 +112,12 @@ void MainGLWidget::paintGL() {
 	m_program->setUniformValue(m_projectionUniform, projection);
 	m_program->setUniformValue(m_normalUniform, normalMatrix);
 
-
 	glVertexAttribPointer(m_posAttr, 3, GL_DOUBLE, GL_FALSE, sizeof(Point3d), &(m_vertices->operator[](0)));
+	glVertexAttribPointer(m_normalAttr, 3, GL_DOUBLE, GL_FALSE, sizeof(Point3d), &(m_normals->operator[](0)));
 	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
 	glEnableVertexAttribArray(m_posAttr);
+	glEnableVertexAttribArray(m_normalAttr);
 	glEnableVertexAttribArray(m_colAttr);
 
 	

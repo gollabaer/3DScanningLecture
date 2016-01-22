@@ -59,7 +59,7 @@ public:
 	*/
 	std::vector<Point3d> applyThinningByRadius(double r); ///< thins the point cloud, so that only one point remains in the given radius
 	std::vector<Point3d> getThinnedPoints(); ///< returns all points in the tree not marked as removed
-	void computeNormals(std::vector<Point3d> points, double radius, std::vector<Point3d> normals);
+	void computeNormals(double radius, std::vector<Point3d> normals);
 
 private:
 	// Node Class

@@ -258,13 +258,13 @@ Tree3d::Node::~Node()
 	//delete this->m_RightChild;
 }
 
-void Tree3d::computeNormals(std::vector<Point3d> points, double radius, std::vector<Point3d> normals){
+void Tree3d::computeNormals(double radius, std::vector<Point3d> normals){
 
-	normals.resize(points.size());
+	normals.resize(m_Points.size());
 
-	for (size_t i = 0; i < points.size(); i++){
+	for (size_t i = 0; i < m_Points.size(); i++){
 
-		std::vector<int> neighboursIndices = this->radiusQuery(points[i], radius);
+		std::vector<int> neighboursIndices = this->radiusQuery(m_Points[i], radius);
 		std::vector<Point3d> neighbourPoints;
 
 		for (int j = 0; j < neighboursIndices.size(); j++)
