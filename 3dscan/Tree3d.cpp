@@ -1,6 +1,8 @@
 #include "Tree3d.h"
 #include <assert.h> 
 #include <limits>  // std::numeric_limits
+#include "Algorithms.h"
+#include "SVD.h"
 
 const int DIM = 3;
 
@@ -255,6 +257,33 @@ Tree3d::Node::~Node()
 	//delete this->m_LeftChild;
 	//delete this->m_RightChild;
 }
+
+void Tree3d::computeNormals(std::vector<Point3d> points, double radius, std::vector<Point3d> normals){
+
+	normals.resize(points.size());
+
+	for (size_t i = 0; i < points.size(); i++){
+
+		std::vector<int> neighboursIndices = this->radiusQuery(points[i], radius);
+		std::vector<Point3d> neighbourPoints;
+
+		for (int j = 0; j < neighboursIndices.size(); j++)
+			neighbourPoints.push_back(this->m_Points[neighboursIndices[j]]);
+
+
+		if (neighbourPoints.size() > 2){
+			Matrix M(3, 3);
+			algorithms::computeCovarianceMatrix3x3(neighbourPoints, M);
+				
+				SVD::computeSymmetricEigenvectors(M);
+				Point3d normal = Point3d(M(0, 2), M(1, 2), M(2, 2));
+				normals[i] = normal;
+			}
+			else
+				normals[i] = Point3d(0, 0, 0);
+	}
+}
+
 
 /*----------------------------*/
 //Getters
