@@ -112,7 +112,9 @@ class MainGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 		QPointF oldMousePosition;
 		GLuint m_posAttr;
 		GLuint m_colAttr;
-		GLuint m_matrixUniform;
+		GLuint m_modelViewUniform;
+		GLuint m_normalUniform;
+		GLuint m_projectionUniform;
 
 		// TODO find better solution
 		bool drawFittedPlane;
