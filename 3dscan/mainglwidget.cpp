@@ -2,34 +2,34 @@
 #include "mainglwidget.h"
 #include <QMouseEvent>
 
-static const char *vertexShaderSource =
-"attribute highp vec4 posAttr;\n"
-"attribute highp vec4 normAttr;\n"
-"attribute lowp vec4 colAttr;\n"
-"varying lowp vec4 col;\n"
-"varying highp vec4 veetex;\n"
-"varying highp vec4 normal;\n"
-"uniform highp mat4 modelView;\n"
-"uniform highp mat4 projection;\n"
-"uniform highp mat4 normalMatrix;\n"
+static const std::string vertexShaderSource =
+"attribute  vec4 posAttr;\n"
+"attribute vec4 normAttr;\n"
+"attribute vec4 colAttr;\n"
+"varying vec4 col;\n"
+"varying vec4 vertex;\n"
+"varying vec4 normal;\n"
+"uniform mat4 modelView;\n"
+"uniform mat4 projection;\n"
+"uniform mat4 normalMatrix;\n"
 "void main() {\n"
 "   col = colAttr;\n"
 "   gl_Position = projection * modelView * posAttr;\n"
 "   vertex = modelView * posAttr;\n"
-"   normal = normalize(normalMatrix * normalAttr)\n"
+"   normal = normalize(normAttr);\n"
 "}\n";
 
-static const char *fragmentShaderSource =
-"varying lowp vec4 col;\n"
-"varying highp vec4 nromal;\n"
-"varying highp vec4 vertex;\n"
+static const std::string fragmentShaderSource =
+"varying vec4 col;\n"
+"varying vec4 normal;\n"
+"varying vec4 vertex;\n"
 "void main() {\n"
-/*"	//our own definitions\n"
+"	//our own definitions\n"
 "	vec3 lightPosition = vec3(1.0, 1.0, 1.0);         //in normalized coordinates (1,1,1). I want the light coming diagonal from the back\n"
 "	vec4 ambientColor = vec4(0.1, 0.1, 0.1, 1.0);   //ambient (surrounding) color is quite dark \n"
 "	//vec4 diffuseColor=vec4(0.4, 0.4, 0.4, 1.0); //you might give the diffuse light a certain fixed color, but I want to take the color that we define outside by glColor (transferred from Vertex shader using \"varying\" variable FrontColor)\n"
 "	vec4 specularColor = vec4(0.7, 0.7, 0.7, 1.0);  //Shiny surfaces create reflecting spots, the color of these spots should be bright\n"
-"	float shininess = 100.0;                        //Shininess - the higher the reflective the surface (is a parameter of the specular term)\n"
+"	float shininess = 100.0f;                        //Shininess - the higher the reflective the surface (is a parameter of the specular term)\n"
 "\n"
 "	vec3 N = normalize(normal);                        //if not already done outside, we normalize the normal vector here\n"
 "\n"
@@ -43,7 +43,7 @@ static const char *fragmentShaderSource =
 "	vec4 Iamb = ambientColor;                     // we just assign our own definition. The variable Iamb is useless it is just for sticking to the names given in the Phong formula  \n"
 "\n"
 "	//calculate Diffuse Term:                     // the amount of diffuse reflected light depends on the surface normal N and the light position L\n"
-"	vec4 Idiff = FrontColor * max(abs(dot(N, L)), 0.0);  //we take our object color as diffuse color  !! ABS was added by our own as a trick to overcome inconsistent normal orientation !!\n"
+"	vec4 Idiff = col * max(abs(dot(N, L)), 0.0);  //we take our object color as diffuse color  !! ABS was added by our own as a trick to overcome inconsistent normal orientation !!\n"
 "\n"
 "	Idiff = clamp(Idiff, 0.0, 1.0);               //make sure that Idiff ranges between 0 and 1\n"
 "\n"
@@ -51,8 +51,7 @@ static const char *fragmentShaderSource =
 "	vec4 Ispec = specularColor * pow(max(dot(R, E), 0.0), 0.03* shininess);\n"
 "	Ispec = clamp(Ispec, 0.0, 1.0);\n"
 "\n"
-"	gl_FragColor = Iamb + Idiff + Ispec; //gl_FragColor is the color that the fragment (aka pixel) on the screen is assigned to. In the Phong model its the sum of ambient,diffuse and specular reflection terms\n"*/
-"gl_FragColor = vec3(1,1,1);\n"
+"	gl_FragColor = Iamb + Idiff + Ispec; //gl_FragColor is the color that the fragment (aka pixel) on the screen is assigned to. In the Phong model its the sum of ambient,diffuse and specular reflection terms\n"
 "}";
 
 
@@ -69,7 +68,7 @@ MainGLWidget::MainGLWidget(QWidget *parent)
 	, drawFittedLine(false)
 	, drawFittedPlane(false)
 {
-
+	m_normals = new std::vector<Point3d>();
 }
 
 MainGLWidget::~MainGLWidget()
@@ -80,8 +79,8 @@ MainGLWidget::~MainGLWidget()
 void MainGLWidget::initializeGL(){
 	m_program = new QOpenGLShaderProgram(this);
 	initializeOpenGLFunctions();
-	m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-	m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+	m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource.c_str());
+	m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
 	m_program->link();
 	m_posAttr = m_program->attributeLocation("posAttr");
 	m_normalAttr = m_program->attributeLocation("normAttr");
@@ -101,7 +100,7 @@ void MainGLWidget::paintGL() {
 	// clear background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-
+	glPointSize(10);
 	m_program->bind();
 
 	QMatrix4x4 modelView = cam.getViewMatrix() * cam.getModelMatrix();
@@ -119,7 +118,6 @@ void MainGLWidget::paintGL() {
 	glEnableVertexAttribArray(m_posAttr);
 	glEnableVertexAttribArray(m_normalAttr);
 	glEnableVertexAttribArray(m_colAttr);
-
 	
 	glDrawArrays(GL_POINTS, 0, m_vertices->size());
 

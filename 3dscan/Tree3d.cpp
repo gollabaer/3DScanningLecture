@@ -258,7 +258,7 @@ Tree3d::Node::~Node()
 	//delete this->m_RightChild;
 }
 
-void Tree3d::computeNormals(double radius, std::vector<Point3d> normals){
+void Tree3d::computeNormals(double radius, std::vector<Point3d> &normals){
 
 	normals.resize(m_Points.size());
 

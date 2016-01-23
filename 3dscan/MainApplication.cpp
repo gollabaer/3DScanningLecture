@@ -349,13 +349,13 @@ void MainApplication::loadPoints(){
 
 	std::string boundingBoxDimensions = sStream.str();
 	std::vector<Point3d> normals;
-	double normalRadius = 0.001;
-	this->_Tree3d.computeNormals(normalRadius, normals);
+	double normalRadius = 1;
+
 
 
 	// hand pointers to vertex data to glWidget
 	this->glWidget->m_vertices = &(this->points);
-	this->glWidget->m_normals = &normals;
+	
 	this->glWidget->count = points.size() * 3;
 
 	// set up color array 
@@ -365,7 +365,9 @@ void MainApplication::loadPoints(){
 	// build up the kd-Tree
 	labelCloudBounds->setText("Building Tree3d...");
 	this->_Tree3d = Tree3d(points, 100);
-
+	this->_Tree3d.computeNormals(normalRadius, normals);
+	this->glWidget->m_normals->resize(normals.size());
+	std::copy(normals.begin(), normals.end(), this->glWidget->m_normals->begin());
 	stopTimer(t1);
 
 	labelCloudBounds->setText(QString(boundingBoxDimensions.c_str()));

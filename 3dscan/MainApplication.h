@@ -28,6 +28,7 @@ private:
 	std::list<Tree3d> trees;
 	Tree3d _Tree3d;
 	std::vector<Point3d> points;
+
 	MainGLWidget * glWidget;
 	QLabel* labelCloudBounds;
 	QLabel* labelTime;
